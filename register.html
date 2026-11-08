@@ -1,0 +1,59 @@
+﻿<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#f1f0eb" />
+  <title>Daftar Akses Â· Krakatau Watch</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="volcanoes-favicon-32.png?v=2" />
+  <link rel="icon" type="image/png" sizes="512x512" href="volcanoes-favicon.png?v=2" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="logo.css" />
+</head>
+<body class="auth-body">
+  <main class="auth-shell auth-register-shell">
+    <aside class="auth-aside">
+      <div class="auth-image"></div><div class="auth-image-shade"></div>
+      <a class="auth-brand" href="index.html"><span class="landing-brand-mark"><img src="volcanoes-transparent.png" alt="" /></span><span><strong>VULCANEOS</strong><small>VOLCANIC &amp; OCEAN INTELLIGENCE</small></span></a>
+      <div class="auth-aside-copy"><span class="auth-kicker"><i></i> SELAT SUNDA | INDONESIA</span><h1>Pengamatan yang baik<br/><em>dimulai dari data.</em></h1><p>Daftarkan akses untuk menjelajahi parameter pesisir, periode pengamatan, dan konteks spasialnya.</p></div>
+      <div class="auth-location"><i class="fa-solid fa-location-dot"></i><span><small>AREA PEMANTAUAN</small><b>Anak Krakatau Â· Selat Sunda</b></span><span class="auth-coordinate">6Â° 06' S<br/>105Â° 25' E</span></div>
+      <span class="auth-aside-credit">CITRA KAWASAN Â· ESRI WORLD IMAGERY</span>
+    </aside>
+    <section class="auth-main">
+      <a class="auth-back" href="index.html"><i class="fa-solid fa-arrow-left"></i> Kembali ke beranda</a>
+      <div class="auth-form-wrap register-form-wrap">
+        <span class="auth-kicker auth-kicker-light">PERMOHONAN AKSES</span>
+        <h2>Ajukan akses.</h2>
+        <p class="auth-intro">Ajukan ID dan kata sandi pilihan Anda. Admin akan meninjau sebelum menambahkan akun.</p>
+        <form class="auth-form" id="accessRequestForm" autocomplete="on">
+          <label for="registerName">Nama lengkap</label>
+          <div class="auth-input-wrap"><i class="fa-regular fa-id-card"></i><input id="registerName" name="name" type="text" placeholder="Nama sesuai identitas" autocomplete="name" maxlength="120" required /></div>
+          <label for="registerInstitution">Instansi</label>
+          <div class="auth-input-wrap"><i class="fa-regular fa-building"></i><input id="registerInstitution" name="institution" type="text" placeholder="Nama instansi atau organisasi" autocomplete="organization" required /></div>
+          <label for="registerEmail">Email</label>
+          <div class="auth-input-wrap"><i class="fa-regular fa-envelope"></i><input id="registerEmail" name="email" type="email" placeholder="nama@instansi.go.id" autocomplete="email" required /></div>
+          <label for="registerId">ID pengguna yang diajukan</label>
+          <div class="auth-input-wrap"><i class="fa-regular fa-user"></i><input id="registerId" name="username" type="text" placeholder="3â€“32 karakter: huruf, angka, titik, _ atau -" minlength="3" maxlength="32" pattern="[A-Za-z0-9._-]{3,32}" autocomplete="username" required /></div>
+          <label for="registerPassword">Kata sandi pilihan</label>
+          <div class="auth-input-wrap"><i class="fa-solid fa-lock"></i><input id="registerPassword" name="password" type="password" placeholder="Minimal 12 karakter; tanpa koma" minlength="12" maxlength="128" autocomplete="new-password" required /><button class="password-toggle" type="button" data-toggle-password="registerPassword" aria-label="Tampilkan kata sandi"><i class="fa-regular fa-eye"></i></button></div>
+          <label for="registerConfirm">Konfirmasi kata sandi</label>
+          <div class="auth-input-wrap"><i class="fa-solid fa-lock"></i><input id="registerConfirm" name="confirmPassword" type="password" placeholder="Ulangi kata sandi" minlength="12" maxlength="128" autocomplete="new-password" required /><button class="password-toggle" type="button" data-toggle-password="registerConfirm" aria-label="Tampilkan kata sandi"><i class="fa-regular fa-eye"></i></button></div>
+          <label for="registerReason">Keperluan akses</label>
+          <div class="auth-input-wrap"><i class="fa-regular fa-comment-dots"></i><input id="registerReason" name="reason" type="text" placeholder="Contoh: penelitian pesisir" maxlength="300" required /></div>
+          <div class="auth-honeypot" aria-hidden="true"><label for="registerWebsite">Website</label><input id="registerWebsite" name="website" type="text" tabindex="-1" autocomplete="off" /></div>
+          <button class="auth-submit" type="submit">Kirim permohonan <i class="fa-solid fa-arrow-right"></i></button>
+          <p class="auth-status" role="status" aria-live="polite">ID dan kata sandi pilihan akan dikirim ke admin untuk ditinjau. Gunakan kata sandi unik yang tidak dipakai di layanan lain.</p>
+        </form>
+        <p class="auth-switch">Sudah memiliki akun? <a href="login.html">Masuk</a></p>
+      </div>
+      <footer class="auth-footer"><span>Â© KRAKATAU WATCH</span><span>AKSES AKUN</span><span>v1.0</span></footer>
+    </section>
+  </main>
+  <script src="auth.js"></script>
+</body>
+</html>
+

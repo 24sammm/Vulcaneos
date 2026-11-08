@@ -1,0 +1,50 @@
+﻿<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#f1f0eb" />
+  <title>Masuk Â· Krakatau Watch</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="volcanoes-favicon-32.png?v=2" />
+  <link rel="icon" type="image/png" sizes="512x512" href="volcanoes-favicon.png?v=2" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="logo.css" />
+</head>
+<body class="auth-body">
+  <main class="auth-shell">
+    <aside class="auth-aside">
+      <div class="auth-image"></div><div class="auth-image-shade"></div>
+      <a class="auth-brand" href="index.html"><span class="landing-brand-mark"><img src="volcanoes-transparent.png" alt="" /></span><span><strong>VULCANEOS</strong><small>VOLCANIC &amp; OCEAN INTELLIGENCE</small></span></a>
+      <div class="auth-aside-copy"><span class="auth-kicker"><i></i> SELAT SUNDA | INDONESIA</span><h1>Memahami perubahan,<br/><em>Menjaga pesisir.</em></h1><p>Ruang kerja geospasial untuk pengamatan lingkungan dan dinamika pesisir Anak Krakatau.</p></div>
+      <div class="auth-location"><i class="fa-solid fa-location-dot"></i><span><small>AREA PEMANTAUAN</small><b>Anak Krakatau Â· Selat Sunda</b></span><span class="auth-coordinate">6Â° 06' S<br/>105Â° 25' E</span></div>
+      <span class="auth-aside-credit">CITRA KAWASAN Â· ESRI WORLD IMAGERY</span>
+    </aside>
+    <section class="auth-main">
+      <a class="auth-back" href="index.html"><i class="fa-solid fa-arrow-left"></i> Kembali ke Beranda</a>
+      <div class="auth-form-wrap">
+        <span class="auth-kicker auth-kicker-light">RUANG KERJA KRAKATAU WATCH</span>
+        <h2>Selamat datang.</h2>
+        <p class="auth-intro">Masuk untuk melanjutkan ke pemantauan pesisir.</p>
+        <form class="auth-form" id="loginForm" method="post" action="/api/login" autocomplete="on">
+          <label for="loginId">ID pengguna</label>
+          <div class="auth-input-wrap"><i class="fa-regular fa-user"></i><input id="loginId" name="username" type="text" placeholder="Masukkan ID pengguna" autocomplete="username" required /></div>
+          <label for="loginPassword">Kata sandi</label>
+          <div class="auth-input-wrap"><i class="fa-solid fa-lock"></i><input id="loginPassword" name="password" type="password" placeholder="Masukkan kata sandi" autocomplete="current-password" required /><button class="password-toggle" type="button" data-toggle-password="loginPassword" aria-label="Tampilkan kata sandi"><i class="fa-regular fa-eye"></i></button></div>
+          <div class="auth-options"><label class="remember-option"><input type="checkbox" name="remember" /><span>Ingat perangkat ini</span></label><button class="auth-inline-link" type="button" data-auth-placeholder>Lupa kata sandi?</button></div>
+          <button class="auth-submit" type="submit">Masuk <i class="fa-solid fa-arrow-right"></i></button>
+          <p class="auth-status" id="loginStatus" role="status" aria-live="polite">Masuk menggunakan ID yang diberikan administrator.</p>
+        </form>
+        <div class="auth-divider"><span>AKSES PENGGUNA</span></div>
+        <p class="auth-switch">Belum memiliki akun? <a href="register.html">Daftar akses</a></p>
+      </div>
+      <footer class="auth-footer"><span>Â© KRAKATAU WATCH</span><span>AKSES AKUN</span><span>v1.0</span></footer>
+    </section>
+  </main>
+  <script src="auth.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#102b33" />
+  <title>Photobooth Patroli · VULCANEOS</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="volcanoes-favicon-32.png?v=2" />
+  <link rel="icon" type="image/png" sizes="512x512" href="volcanoes-favicon.png?v=2" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="photo-booth.css?v=20261107-1" />
+</head>
+<body class="photo-page">
+  <header class="photo-header"><a class="photo-brand" href="index.html"><span class="photo-logo"><img src="volcanoes-transparent.png" alt="" /></span><span><b>VULCANEOS</b><small>VOLCANIC &amp; OCEAN INTELLIGENCE</small></span></a><nav class="photo-nav-links" aria-label="Navigasi utama"><a href="peta.html">Peta</a><a href="game.html">Game patroli</a><a class="photo-back" href="game.html"><i class="fa-solid fa-arrow-left"></i> Kembali ke patroli</a></nav></header>
+  <main class="photo-main">
+    <section class="photo-copy"><span class="photo-kicker">PATROLI SELESAI <i></i> HASIL LAPANGAN</span><h1>Simpan momen<br /><em>pengamatanmu.</em></h1><p>Abadikan hasil patroli bersama lencana dan catatan checkpoint-mu.</p><div class="photo-stats"><div><small>SKOR PATROLI</small><b id="resultScore">0</b></div><div><small>SAMPEL DIKUMPULKAN</small><b id="resultSamples">0</b></div><div><small>CHECKPOINT BENAR</small><b id="resultQuiz">0/0</b></div></div></section>
+    <section class="photo-workspace"><div class="photo-camera-panel"><div class="photo-panel-head"><span><i class="fa-solid fa-camera-retro"></i> PESISIR PHOTOBOOTH</span><small id="photoCameraStatus">KAMERA BELUM AKTIF</small></div><div class="photo-viewfinder" id="photoViewfinder"><video id="photoVideo" autoplay playsinline muted></video><img id="photoOutput" alt="Foto hasil patroli dengan frame Krakatau Watch" hidden /><div class="photo-placeholder" id="photoPlaceholder"><i class="fa-solid fa-camera"></i><b>Abadikan patroli ini</b><span>Aktifkan kamera untuk mulai</span></div><div class="photo-live-frame"><span class="live-brand"><i class="fa-solid fa-mountain-sun"></i> KRAKATAU WATCH<small>COASTAL INTELLIGENCE</small></span><span class="live-caption">ANAK KRAKATAU - SELAT SUNDA</span></div></div><div class="photo-actions"><button class="photo-secondary" id="activatePhotoCamera" type="button"><i class="fa-solid fa-video"></i> Aktifkan kamera</button><button class="photo-primary" id="takePhoto" type="button" disabled><i class="fa-solid fa-camera"></i> Ambil foto</button><button class="photo-secondary" id="retakePhoto" type="button" hidden><i class="fa-solid fa-rotate-left"></i> Foto ulang</button></div><p class="photo-privacy"><i class="fa-solid fa-lock"></i> Foto dirender di perangkat ini dan tidak dikirim ke server.</p></div>
+      <aside class="photo-result-card"><span class="photo-result-label">CATATAN PATROLI <i class="fa-solid fa-location-dot"></i></span><span class="photo-badge-icon"><i class="fa-solid fa-award"></i></span><small>LENCANA PENCAPAIAN</small><h2 id="resultBadge">Penjelajah Pesisir</h2><div class="photo-result-rule"></div><label>Nama pada foto<input id="photoName" maxlength="36" placeholder="Nama pengunjung" autocomplete="name" /></label><label>NIM <span>opsional</span><input id="photoNim" maxlength="24" placeholder="Nomor induk mahasiswa" autocomplete="off" /></label><button class="photo-save" id="savePhoto" type="button" disabled><i class="fa-solid fa-download"></i> Simpan hasil foto</button><p class="photo-fallback" id="noRunMessage" hidden>Belum ada patroli tersimpan. <a href="game.html">Mulai game 3D</a>.</p><p class="photo-result-foot">Anak Krakatau <span>·</span> Selat Sunda <span>·</span> 2026</p></aside>
+    </section>
+  </main>
+  <script src="photo-booth.js?v=20261107-1"></script>
+</body>
+</html>

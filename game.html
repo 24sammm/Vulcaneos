@@ -1,0 +1,36 @@
+﻿<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#102b33" />
+  <title>Patroli Pesisir · VULCANEOS</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="volcanoes-favicon-32.png?v=2" />
+  <link rel="icon" type="image/png" sizes="512x512" href="volcanoes-favicon.png?v=2" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="game.css?v=20261107-3" />
+  <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js"}}</script>
+</head>
+<body class="patrol-page">
+  <header class="patrol-header">
+    <a class="patrol-brand" href="index.html"><span class="brand-icon"><img src="volcanoes-transparent.png" alt="" /></span><span><b>VULCANEOS</b><small>VOLCANIC &amp; OCEAN INTELLIGENCE</small></span></a>
+    <div class="patrol-header-meta"><span><i></i> SELAT SUNDA / PATROLI 01</span><a href="peta.html"><i class="fa-solid fa-map"></i> Peta</a><a href="misi.html"><i class="fa-solid fa-camera-retro"></i> Photobooth</a></div>
+  </header>
+  <main class="patrol-main">
+    <section class="patrol-intro"><div><div class="patrol-kicker">ARCADE FIELD MISSION <span>01</span></div><h1>Jaga jalur <em>pengamatan.</em></h1></div><p>Kemudikan kapal riset, ambil sampel laut, hindari material vulkanik, dan jawab tantangan di setiap checkpoint.</p></section>
+    <section class="game-shell" aria-label="Game Patroli Pesisir">
+      <div class="game-hud"><div class="hud-title"><i class="fa-solid fa-compass"></i><span>PATROLI PESISIR<small>ANAK KRAKATAU - SELAT SUNDA</small></span></div><div class="hud-stat"><small>SAMPEL</small><b id="sampleCount">00</b></div><div class="hud-stat"><small>SKOR</small><b id="scoreCount">0000</b></div><div class="hud-stat"><small>WAKTU</small><b id="timeCount">40<span>s</span></b></div><div class="hud-stat hud-lives"><small>KONDISI KAPAL</small><b id="lifeCount"><i class="fa-solid fa-heart"></i><i class="fa-solid fa-heart"></i><i class="fa-solid fa-heart"></i></b></div><div class="hud-best"><small>TERBAIK</small><b id="bestCount">0000</b></div><button class="pause-button" id="pauseGame" type="button" aria-label="Jeda permainan" disabled><i class="fa-solid fa-pause"></i></button></div>
+      <div class="game-stage"><canvas id="patrolCanvas" aria-label="Permainan 3D kapal patroli pesisir"></canvas><div class="stage-vignette" aria-hidden="true"></div><div class="stage-overlay" id="stageOverlay"><div class="overlay-mark"><i class="fa-solid fa-sailboat"></i></div><span class="overlay-kicker" id="overlayKicker">MISI SIAP</span><h2 id="overlayTitle">Patroli dimulai?</h2><p id="overlayText">Kapal akan terus melaju. Arahkan ke kiri atau kanan untuk mengambil sampel dan menghindari batu apung.</p><button class="start-game-button" id="startGame" type="button">Mulai patroli <i class="fa-solid fa-arrow-right"></i></button><a class="photo-result-link" id="photoResultLink" href="misi.html" hidden>Buat foto hasil patroli <i class="fa-solid fa-arrow-up-right-from-square"></i></a><small class="desktop-hint">GERAK: A / D ATAU ← / → - JEDA: SPACE</small></div><section class="checkpoint-modal" id="checkpointModal" hidden><div class="checkpoint-card"><span class="checkpoint-kicker"><i class="fa-solid fa-location-crosshairs"></i> CHECKPOINT PESISIR <b id="checkpointNumber">01</b></span><h2 id="checkpointQuestion">Tantangan pengamatan</h2><p id="checkpointHint">Pilih jawaban yang paling tepat.</p><div class="checkpoint-options" id="checkpointOptions"></div><div class="checkpoint-feedback" id="checkpointFeedback" hidden></div><span class="checkpoint-reward"><i class="fa-solid fa-stopwatch"></i> Benar <b>+10 detik</b><span>&middot;</span> Salah <b>-5 detik</b></span></div></section></div>
+      <div class="game-controls"><div class="control-hint"><i class="fa-regular fa-lightbulb"></i><span>Kapal maju otomatis. Geser kiri atau kanan untuk mengambil sampel (+100 skor) dan hindari batu apung.</span></div><div class="touch-controls" aria-label="Kontrol arah kapal"><button data-move="left" aria-label="Gerak ke kiri"><i class="fa-solid fa-chevron-left"></i></button><button data-move="right" aria-label="Gerak ke kanan"><i class="fa-solid fa-chevron-right"></i></button></div></div>
+      <div class="game-bottom"><span><i class="fa-solid fa-location-dot"></i> AREA SIMULASI: PERAIRAN ANAK KRAKATAU</span><span>SIMULASI EDUKASI - BUKAN PANDUAN NAVIGASI</span></div>
+    </section>
+    <section class="patrol-footer"><div><span class="footer-index">01 / 03</span><p>Jaga jarak dari material erupsi.<br /><b>Teruskan pengamatan.</b></p></div><a href="peta.html">Kembali ke peta VULCANEOS <i class="fa-solid fa-arrow-right"></i></a></section>
+  </main>
+  <div id="gameAnnouncement" class="sr-only" aria-live="polite"></div>
+  <script type="module" src="game.js?v=20261107-3"></script>
+</body>
+</html>
+

@@ -1,0 +1,10 @@
+{
+  "functions": {
+    "api/protected-webgis.js": {
+      "includeFiles": "webgis.html"
+    }
+  },
+  "rewrites": [
+    { "source": "/webgis.html", "destination": "/api/protected-webgis" }
+  ]
+}
