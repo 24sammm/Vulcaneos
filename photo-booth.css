@@ -39,3 +39,4 @@ body.photo-page{min-width:320px;background:#0d2225;color:var(--booth-ink);font-f
 @media(max-width:800px){.studio-control-column .studio-status{position:absolute;top:18px;right:12px}}
 @media(max-width:520px){.photo-studio{grid-template-rows:32px minmax(300px,1fr) auto auto auto}.studio-frame-wrap{grid-row:2}.studio-control-column .studio-capture{grid-row:3}.studio-control-column .template-picker{grid-row:4}.studio-control-column .filter-picker{grid-row:5}}
 @media(max-width:520px){.output-preview-wrap{width:min(100%,440px);max-height:82svh;padding:6px}.output-preview-wrap img{height:min(78svh,900px);width:auto;max-width:100%;max-height:78svh}.output-workspace{width:100%;gap:22px}.output-heading>p{font-size:9px}}
+.output-filter-group .download-size-label{margin-top:17px}.output-filter-group .download-size-select{margin-bottom:2px}
