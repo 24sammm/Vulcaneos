@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="landing-v2.css" />
   <link rel="stylesheet" href="logo.css" />
   <link href="https://cesium.com/downloads/cesiumjs/releases/1.147/Build/Cesium/Widgets/widgets.css" rel="stylesheet" />
-  <link rel="stylesheet" href="public-map.css" />
+  <link rel="stylesheet" href="public-map.css?v=morphology-years-1" />
 </head>
 <body class="landing-body">
 <section class="landing-page" id="landingPage">
@@ -57,6 +57,7 @@
             <section class="public-sidebar-section"><div class="public-sidebar-title"><span>Layer peta</span><i class="fa-solid fa-layer-group"></i></div>
               <div class="public-layer-card"><button class="public-layer-heading" id="publicLayersToggle" type="button" aria-expanded="true"><span><i class="fa-solid fa-layer-group"></i> Tampilkan data</span><i class="fa-solid fa-chevron-up" id="publicLayersCaret"></i></button><div class="public-layer-list" id="publicLayerList">
                 <label class="public-check"><input type="checkbox" data-public-layer="shoreline" checked><span></span><b>Transek garis pantai</b></label>
+                <div class="public-temporal public-morphology"><label class="public-check"><input type="checkbox" data-public-layer="morphology"><span></span><b>Morfologi Anak Krakatau</b></label><select class="public-morphology-year" id="publicMorphologyYear" aria-label="Tahun data morfologi" hidden><option value="2017" selected>2017</option><option value="2019">2019</option><option value="2021">2021</option><option value="2025">2025</option></select></div>
                 <label class="public-check"><input type="checkbox" data-public-layer="risk" checked><span></span><b>Zonasi jarak</b></label>
                 <div class="public-layer-separator"></div>
                 <div class="public-temporal"><label class="public-check"><input type="checkbox" data-public-layer="sst"><span></span><b>Suhu permukaan laut</b></label><div class="public-years" data-public-years="sst" hidden><button type="button" data-public-year="sst" data-year="2017" class="selected">2017</button><button type="button" data-public-year="sst" data-year="2019">2019</button><button type="button" data-public-year="sst" data-year="2023">2023</button><button type="button" data-public-year="sst" data-year="2025">2025</button></div></div>
@@ -77,7 +78,7 @@
   <script>window.CESIUM_BASE_URL = 'https://cesium.com/downloads/cesiumjs/releases/1.147/Build/Cesium/';</script>
   <script src="https://cesium.com/downloads/cesiumjs/releases/1.147/Build/Cesium/Cesium.js"></script>
   <script src="landing.js"></script>
-  <script src="public-map.js"></script>
+  <script src="public-map.js?v=morphology-years-1"></script>
 </body>
 </html>
 
