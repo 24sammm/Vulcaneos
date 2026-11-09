@@ -37,6 +37,7 @@
 .public-years { display: flex; gap: 4px; padding: 0 0 7px 23px; }.public-years[hidden] { display: none; }
 .public-years button { flex: 1; height: 21px; padding: 0 2px; border: 1px solid #d2dcd4; border-radius: 3px; background: #f5f6f2; color: #718078; font: 500 7px var(--v-sans); cursor: pointer; }
 .public-years button:hover,.public-years button.selected { border-color: #6c9581; background: #e2ebe3; color: #345c4c; }
+.public-morphology-year{display:block;width:calc(100% - 23px);height:25px;margin:0 0 7px 23px;padding:0 7px;border:1px solid #d2dcd4;border-radius:3px;background:#f5f6f2;color:#42594f;font:500 8px var(--v-sans)}.public-morphology-year[hidden]{display:none}.public-morphology-year:focus{outline:2px solid #b77b56;outline-offset:1px}.public-map-sidebar .public-morphology-year{width:calc(100% - 23px);border-color:#566760;background:#2a3634;color:#d4ddd6}
 .public-map-controls { position: absolute; z-index: 5; top: 60px; right: 17px; display: flex; flex-direction: column; overflow: hidden; border: 1px solid #d8e3dc; border-radius: 4px; box-shadow: 0 4px 13px #0a252537; }
 .public-map-controls button { width: 37px; height: 37px; border: 0; border-bottom: 1px solid #d6ded8; background: #f3f5f1; color: #364d43; font-size: 12px; cursor: pointer; }.public-map-controls button:last-child { border-bottom: 0; }.public-map-controls button:hover { background: #dfe9e1; color: #264c40; }
 .public-map-legend { position: absolute; z-index: 4; right: 17px; bottom: 19px; display: flex; flex-direction: column; gap: 10px; min-width: 143px; padding: 13px 14px; border: 1px solid #e0e7df55; border-radius: 4px; background: #112723d9; color: #e9eee7; box-shadow: 0 7px 24px #071c1c38; backdrop-filter: blur(10px); font: 500 8px var(--v-sans); }
@@ -117,3 +118,5 @@
   .public-parameter-legend .parameter-class { font-size: 5px; }
   .public-parameter-legend .parameter-class>b { font-size: 6px; }
 }
+
+.public-parameter-legend .morphology-class-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.public-parameter-legend .morphology-class-list .parameter-class{display:grid;grid-template-columns:8px 1fr;align-items:center;column-gap:6px}.public-parameter-legend .morphology-class-list .parameter-class>i{display:block;width:8px;height:8px;border-radius:2px}.public-parameter-legend .morphology-class-list .parameter-class>b{grid-column:2}
