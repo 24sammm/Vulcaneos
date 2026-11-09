@@ -233,8 +233,8 @@
     return photo;
   }
 
-  function drawFilteredCover(ctx, source, x, y, width, height, index) {
-    const prepared = preparePhoto(source, width, height, index, activeFilter);
+  function drawFilteredCover(ctx, source, x, y, width, height, index, qualityScale = 1) {
+    const prepared = preparePhoto(source, width * qualityScale, height * qualityScale, index, activeFilter);
     ctx.drawImage(prepared, x, y, width, height);
   }
 
@@ -306,19 +306,21 @@
     const frame = frameOverlays[selectedTemplate];
     if (!frame) return;
     const result = document.createElement('canvas');
-    result.width = 426;
-    result.height = 1280;
+    const outputScale = 2;
+    result.width = 426 * outputScale;
+    result.height = 1280 * outputScale;
     const resultContext = result.getContext('2d');
+    resultContext.scale(outputScale, outputScale);
     resultContext.fillStyle = '#102629';
-    resultContext.fillRect(0, 0, result.width, result.height);
+    resultContext.fillRect(0, 0, 426, 1280);
     shots.forEach((still, index) => {
       const { x, y, w, h } = clipWindow(resultContext, selectedTemplate, index);
       resultContext.save();
       resultContext.clip();
-      drawFilteredCover(resultContext, still, x, y, w, h, index);
+      drawFilteredCover(resultContext, still, x, y, w, h, index, outputScale);
       resultContext.restore();
     });
-    resultContext.drawImage(frame, 0, 0, result.width, result.height);
+    resultContext.drawImage(frame, 0, 0, 426, 1280);
     outputCanvas = result;
     $('#photoOutput').src = result.toDataURL('image/png');
     $('#photoOutputSection').hidden = false;
