@@ -1,105 +1,456 @@
-﻿(() => {
+(() => {
   const $ = (selector) => document.querySelector(selector);
-  let result = { score: 0, samples: 0, quizCorrect: 0, quizTotal: 0 };
+  const canvas = $('#liveBoothCanvas');
+  const context = canvas.getContext('2d');
+  const video = $('#photoVideo');
+  const templates = {};
+  const frameOverlays = {};
+  const shots = [null, null, null];
+  let selectedTemplate = 1;
+  let activeSlot = 0;
   let stream = null;
+  let capturing = false;
   let outputCanvas = null;
-  try { result = { ...result, ...JSON.parse(localStorage.getItem('krakatau-last-patrol') || '{}') }; } catch { /* Fotobooth tetap dapat dibuka tanpa hasil tersimpan. */ }
+  let renderRequest = 0;
+  let activeFilter = 'none';
+  let lastLiveRender = 0;
+  let liveRenderTimer = 0;
 
-  const badge = result.score >= 1500 ? 'Analis Pesisir' : result.score >= 800 ? 'Pengamat Pesisir' : 'Penjelajah Pesisir';
-  $('#resultScore').textContent = String(result.score || 0);
-  $('#resultSamples').textContent = String(result.samples || 0);
-  $('#resultQuiz').textContent = `${result.quizCorrect || 0}/${result.quizTotal || 0}`;
-  $('#resultBadge').textContent = badge;
-  if (!result.date) $('#noRunMessage').hidden = false;
+  [1, 2].forEach((number) => {
+    const image = new Image();
+    image.src = `photoboothtemp${number}.jpeg`;
+    image.onload = () => {
+      frameOverlays[number] = createFrameOverlay(number);
+      scheduleRender();
+    };
+    templates[number] = image;
+  });
 
-  function stopCamera() {
-    stream?.getTracks().forEach((track) => track.stop());
-    stream = null;
-    $('#photoVideo').srcObject = null;
+  const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+
+  function scheduleRender() {
+    if (renderRequest) return;
+    const complexFilter = ['halftone', 'popart', 'toon', 'retro-black'].includes(activeFilter);
+    if (stream && complexFilter) {
+      const remaining = 110 - (performance.now() - lastLiveRender);
+      if (remaining > 0) {
+        if (!liveRenderTimer) liveRenderTimer = window.setTimeout(() => {
+          liveRenderTimer = 0;
+          scheduleRender();
+        }, remaining);
+        return;
+      }
+    }
+    renderRequest = window.requestAnimationFrame(() => {
+      renderRequest = 0;
+      lastLiveRender = performance.now();
+      drawLiveCanvas();
+    });
+  }
+
+  function updateStatus(message, live = Boolean(stream)) {
+    $('#photoCameraStatus').querySelector('span').textContent = message;
+    $('#photoCameraStatus').classList.toggle('is-live', live);
+  }
+
+  function clipWindow(ctx, template, index) {
+    ctx.beginPath();
+    if (template === 1) {
+      const windows = [
+        { x: 42, y: 230, w: 341, h: 248 },
+        { x: 42, y: 516, w: 341, h: 249 },
+        { x: 42, y: 803, w: 341, h: 249 },
+      ];
+      const { x, y, w, h } = windows[index];
+      ctx.rect(x, y, w, h);
+      return { x, y, w, h };
+    }
+    if (index === 0) {
+      ctx.moveTo(55, 285);
+      ctx.quadraticCurveTo(55, 136, 218, 136);
+      ctx.quadraticCurveTo(382, 136, 382, 285);
+      ctx.lineTo(382, 432);
+      ctx.lineTo(55, 432);
+      ctx.closePath();
+      return { x: 55, y: 136, w: 327, h: 296 };
+    }
+    if (index === 1) {
+      ctx.rect(55, 445, 327, 258);
+      return { x: 55, y: 445, w: 327, h: 258 };
+    }
+    ctx.roundRect(55, 718, 327, 286, 48);
+    return { x: 55, y: 718, w: 327, h: 286 };
+  }
+
+  function drawCover(ctx, source, x, y, width, height) {
+    const sourceWidth = source.videoWidth || source.width;
+    const sourceHeight = source.videoHeight || source.height;
+    if (!sourceWidth || !sourceHeight) return;
+    const aspect = width / height;
+    const sourceAspect = sourceWidth / sourceHeight;
+    let sx = 0, sy = 0, sw = sourceWidth, sh = sourceHeight;
+    if (sourceAspect > aspect) {
+      sw = sourceHeight * aspect;
+      sx = (sourceWidth - sw) / 2;
+    } else {
+      sh = sourceWidth / aspect;
+      sy = (sourceHeight - sh) / 2;
+    }
+    ctx.translate(x + width, y);
+    ctx.scale(-1, 1);
+    ctx.drawImage(source, sx, sy, sw, sh, 0, 0, width, height);
+  }
+
+  function preparePhoto(source, width, height, index, filter) {
+    const photo = document.createElement('canvas');
+    photo.width = Math.max(1, Math.round(width));
+    photo.height = Math.max(1, Math.round(height));
+    const photoContext = photo.getContext('2d', { willReadFrequently: true });
+    photoContext.save();
+    drawCover(photoContext, source, 0, 0, photo.width, photo.height);
+    photoContext.restore();
+    if (!filter || filter === 'none') return photo;
+
+    if (filter === 'mist') {
+      const glow = document.createElement('canvas');
+      glow.width = photo.width;
+      glow.height = photo.height;
+      const glowContext = glow.getContext('2d');
+      glowContext.filter = 'saturate(.78) contrast(1.04) brightness(.9)';
+      glowContext.drawImage(photo, 0, 0);
+      glowContext.filter = 'blur(8px) brightness(1.35)';
+      glowContext.globalAlpha = .28;
+      glowContext.drawImage(photo, -2, -2, photo.width + 4, photo.height + 4);
+      glowContext.filter = 'none';
+      glowContext.globalAlpha = .2;
+      glowContext.globalCompositeOperation = 'screen';
+      glowContext.drawImage(photo, 0, 0);
+      return glow;
+    }
+
+    const image = photoContext.getImageData(0, 0, photo.width, photo.height);
+    const data = image.data;
+    const palettes = [
+      [[20, 49, 76], [0, 158, 169], [244, 103, 69], [247, 205, 108]],
+      [[55, 39, 105], [44, 153, 177], [236, 72, 115], [255, 197, 77]],
+      [[23, 73, 58], [35, 165, 130], [225, 117, 65], [242, 208, 133]],
+    ];
+    const palette = palettes[index % palettes.length];
+    const luminance = new Float32Array(photo.width * photo.height);
+    for (let pixel = 0, offset = 0; pixel < luminance.length; pixel += 1, offset += 4) {
+      let r = data[offset], g = data[offset + 1], b = data[offset + 2];
+      let y = .2126 * r + .7152 * g + .0722 * b;
+      luminance[pixel] = y;
+      if (filter === 'halftone') {
+        const tone = Math.max(0, Math.min(1, (y - 28) / 220));
+        data[offset] = 224 - tone * 95;
+        data[offset + 1] = 211 - tone * 87;
+        data[offset + 2] = 178 - tone * 62;
+      } else if (filter === 'popart') {
+        const tone = Math.min(3, Math.floor(y / 64));
+        [data[offset], data[offset + 1], data[offset + 2]] = palette[tone];
+      } else if (filter === 'toon') {
+        const level = Math.round(y / 64) * 64;
+        const scale = level / Math.max(1, y);
+        data[offset] = Math.min(255, r * scale);
+        data[offset + 1] = Math.min(255, g * scale);
+        data[offset + 2] = Math.min(255, b * scale);
+      } else if (filter === 'retro-black') {
+        const x = pixel % photo.width;
+        const row = Math.floor(pixel / photo.width);
+        const nx = (x / Math.max(1, photo.width - 1) - .5) * 2;
+        const ny = (row / Math.max(1, photo.height - 1) - .5) * 2;
+        const vignette = Math.max(.58, 1 - (nx * nx + ny * ny) * .19);
+        let noise = (pixel + 1) * 374761393;
+        noise = (noise ^ (noise >>> 13)) * 1274126177;
+        noise ^= noise >>> 16;
+        const grain = (((noise >>> 0) / 4294967295) - .5) * 5;
+        const mono = Math.max(0, Math.min(255, (y - 112) * 1.22 + 124 + grain)) * vignette;
+        data[offset] = Math.min(255, mono + 8);
+        data[offset + 1] = Math.min(255, mono + 4);
+        data[offset + 2] = Math.max(0, mono - 2);
+      } else if (filter === 'moody') {
+        const gray = (r + g + b) / 3;
+        data[offset] = Math.max(0, Math.min(255, gray * .18 + r * .82 - 13));
+        data[offset + 1] = Math.max(0, Math.min(255, gray * .2 + g * .8 - 11));
+        data[offset + 2] = Math.max(0, Math.min(255, gray * .23 + b * .77 - 7));
+      } else if (filter === 'teal-orange') {
+        data[offset] = Math.min(255, r * 1.08 + 13);
+        data[offset + 1] = Math.max(0, Math.min(255, g * .98 + 5));
+        data[offset + 2] = Math.max(0, Math.min(255, b * 1.08 + (r < 125 ? 13 : -4)));
+      }
+    }
+    photoContext.putImageData(image, 0, 0);
+
+    if (filter === 'halftone') {
+      const dots = document.createElement('canvas');
+      dots.width = photo.width;
+      dots.height = photo.height;
+      const dotContext = dots.getContext('2d');
+      dotContext.fillStyle = '#f1e4c7';
+      dotContext.fillRect(0, 0, dots.width, dots.height);
+      dotContext.fillStyle = '#273b3a';
+      const spacing = 6;
+      for (let y = spacing / 2; y < dots.height; y += spacing) {
+        for (let x = spacing / 2; x < dots.width; x += spacing) {
+          const value = luminance[Math.min(dots.height - 1, Math.floor(y)) * dots.width + Math.min(dots.width - 1, Math.floor(x))] || 0;
+          const radius = (1 - value / 255) * spacing * .44;
+          if (radius > .35) {
+            dotContext.beginPath();
+            dotContext.arc(x, y, radius, 0, Math.PI * 2);
+            dotContext.fill();
+          }
+        }
+      }
+      const result = document.createElement('canvas');
+      result.width = photo.width;
+      result.height = photo.height;
+      const resultContext = result.getContext('2d');
+      resultContext.drawImage(photo, 0, 0);
+      resultContext.globalAlpha = .84;
+      resultContext.drawImage(dots, 0, 0);
+      return result;
+    }
+
+    if (filter === 'toon') {
+      const edges = photoContext.getImageData(0, 0, photo.width, photo.height);
+      const edgeData = edges.data;
+      for (let y = 1; y < photo.height - 1; y += 1) {
+        for (let x = 1; x < photo.width - 1; x += 1) {
+          const p = y * photo.width + x;
+          const gx = Math.abs(luminance[p + 1] - luminance[p - 1]);
+          const gy = Math.abs(luminance[p + photo.width] - luminance[p - photo.width]);
+          if (gx + gy > 62) {
+            const i = p * 4;
+            edgeData[i] *= .2;
+            edgeData[i + 1] *= .2;
+            edgeData[i + 2] *= .2;
+          }
+        }
+      }
+      photoContext.putImageData(edges, 0, 0);
+    }
+    return photo;
+  }
+
+  function drawFilteredCover(ctx, source, x, y, width, height, index) {
+    const prepared = preparePhoto(source, width, height, index, activeFilter);
+    ctx.drawImage(prepared, x, y, width, height);
+  }
+
+  function createFrameOverlay(number) {
+    const overlay = document.createElement('canvas');
+    overlay.width = 426;
+    overlay.height = 1280;
+    const overlayContext = overlay.getContext('2d');
+    overlayContext.drawImage(templates[number], 0, 0, overlay.width, overlay.height);
+    overlayContext.globalCompositeOperation = 'destination-out';
+    for (let index = 0; index < 3; index += 1) {
+      clipWindow(overlayContext, number, index);
+      overlayContext.fill();
+    }
+    overlayContext.globalCompositeOperation = 'source-over';
+    return overlay;
+  }
+
+  function drawLiveCanvas() {
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.fillStyle = '#102629';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    for (let index = 0; index < 3; index += 1) {
+      const { x, y, w, h } = clipWindow(context, selectedTemplate, index);
+      const source = shots[index] || (stream && video.readyState >= 2 ? video : null);
+      context.save();
+      context.clip();
+      if (source) {
+        drawFilteredCover(context, source, x, y, w, h, index);
+      } else {
+        context.fillStyle = index === activeSlot ? '#28413d' : '#1d3434';
+        context.fillRect(x, y, w, h);
+        context.fillStyle = '#e6d5b7';
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        context.font = '600 16px Manrope, Arial';
+        context.fillText(`FOTO ${index + 1}`, x + w / 2, y + h / 2 - 8);
+        context.fillStyle = '#bfd0c5';
+        context.font = '12px Arial';
+        context.fillText(shots[index] ? 'TERISI' : 'KOTAK FOTO', x + w / 2, y + h / 2 + 15);
+      }
+      context.restore();
+    }
+    const frame = frameOverlays[selectedTemplate];
+    if (frame) context.drawImage(frame, 0, 0, canvas.width, canvas.height);
+    if (stream) scheduleRender();
+  }
+
+  function updateSlots() {
+    document.querySelectorAll('[data-photo-slot]').forEach((button) => {
+      const index = Number(button.dataset.photoSlot);
+      const filled = Boolean(shots[index]);
+      button.classList.toggle('is-filled', filled);
+      button.classList.toggle('is-current', index === activeSlot);
+      button.querySelector('span').textContent = filled ? 'Terisi · ulangi' : 'Kosong';
+    });
+    const replacing = Boolean(shots[activeSlot]);
+    $('#shutterLabel').textContent = `${replacing ? 'Ulangi foto' : 'Ambil foto'} ${activeSlot + 1}`;
+    $('#captureHint').textContent = replacing
+      ? `Kotak ${activeSlot + 1} sudah terisi. Ambil ulang untuk mengganti fotonya.`
+      : `Foto berikutnya akan masuk ke kotak ${activeSlot + 1} dari 3.`;
+    $('#captureTitle').textContent = `${shots.filter(Boolean).length} dari 3 foto tersimpan`;
+    $('#takePhoto').disabled = !stream || capturing;
+    scheduleRender();
+  }
+
+  function composeOutput() {
+    if (!shots.every(Boolean)) return;
+    const frame = frameOverlays[selectedTemplate];
+    if (!frame) return;
+    const result = document.createElement('canvas');
+    result.width = 426;
+    result.height = 1280;
+    const resultContext = result.getContext('2d');
+    resultContext.fillStyle = '#102629';
+    resultContext.fillRect(0, 0, result.width, result.height);
+    shots.forEach((still, index) => {
+      const { x, y, w, h } = clipWindow(resultContext, selectedTemplate, index);
+      resultContext.save();
+      resultContext.clip();
+      drawFilteredCover(resultContext, still, x, y, w, h, index);
+      resultContext.restore();
+    });
+    resultContext.drawImage(frame, 0, 0, result.width, result.height);
+    outputCanvas = result;
+    $('#photoOutput').src = result.toDataURL('image/png');
+    $('#photoOutputSection').hidden = false;
   }
 
   async function activateCamera() {
     if (!navigator.mediaDevices?.getUserMedia) {
-      $('#photoCameraStatus').textContent = 'KAMERA TIDAK DIDUKUNG';
+      updateStatus('KAMERA TIDAK DIDUKUNG', false);
+      $('#photoPlaceholder').querySelector('small').textContent = 'Buka halaman melalui HTTPS atau localhost pada browser modern.';
       return;
     }
     try {
-      stopCamera();
+      stream?.getTracks().forEach((track) => track.stop());
       stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
-      const video = $('#photoVideo');
       video.srcObject = stream;
       await video.play();
-      video.hidden = false;
       $('#photoPlaceholder').hidden = true;
-      $('#photoOutput').hidden = true;
-      $('#photoViewfinder').classList.remove('has-photo');
-      $('#photoCameraStatus').textContent = 'KAMERA SIAP';
       $('#takePhoto').disabled = false;
-      $('#activatePhotoCamera').hidden = true;
-      $('#retakePhoto').hidden = true;
+      updateStatus('KAMERA SIAP · LIVE');
+      scheduleRender();
     } catch (error) {
-      $('#photoCameraStatus').textContent = 'KAMERA TIDAK TERSEDIA';
-      $('#photoPlaceholder').querySelector('span').textContent = error.name === 'NotAllowedError' ? 'Izin kamera belum diberikan' : 'Kamera tidak dapat dibuka';
+      stream = null;
+      updateStatus('KAMERA TIDAK TERSEDIA', false);
+      $('#photoPlaceholder').hidden = false;
+      $('#photoPlaceholder').querySelector('small').textContent = error.name === 'NotAllowedError'
+        ? 'Izin kamera belum diberikan. Izinkan kamera melalui pengaturan browser.'
+        : 'Kamera tidak dapat dibuka. Pastikan kamera tidak sedang digunakan aplikasi lain.';
     }
   }
 
-  function capture() {
-    const video = $('#photoVideo');
-    if (!video.videoWidth) return;
-    const w = 1080, h = 1350, imageY = 150, imageH = 835;
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    canvas.width = w; canvas.height = h;
-    ctx.fillStyle = '#102b33'; ctx.fillRect(0, 0, w, h);
-    const target = w / imageH, source = video.videoWidth / video.videoHeight;
-    let sx = 0, sy = 0, sw = video.videoWidth, sh = video.videoHeight;
-    if (source > target) { sw = video.videoHeight * target; sx = (video.videoWidth - sw) / 2; }
-    else { sh = video.videoWidth / target; sy = (video.videoHeight - sh) / 2; }
-    ctx.save(); ctx.translate(w, 0); ctx.scale(-1, 1); ctx.drawImage(video, sx, sy, sw, sh, 0, imageY, w, imageH); ctx.restore();
-    const fade = ctx.createLinearGradient(0, imageY + imageH - 180, 0, imageY + imageH + 20);
-    fade.addColorStop(0, 'rgba(16,43,51,0)'); fade.addColorStop(1, '#102b33'); ctx.fillStyle = fade; ctx.fillRect(0, imageY + imageH - 180, w, 200);
-    ctx.fillStyle = '#102b33'; ctx.fillRect(0, 0, w, imageY);
-    ctx.strokeStyle = '#d5b47c'; ctx.lineWidth = 3; ctx.strokeRect(25, 25, w - 50, h - 50);
-    ctx.fillStyle = '#d8b47b'; ctx.beginPath(); ctx.moveTo(54, 59); ctx.lineTo(78, 27); ctx.lineTo(97, 49); ctx.lineTo(111, 33); ctx.lineTo(141, 68); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#f2f1e8'; ctx.font = '700 25px Manrope, Arial'; ctx.fillText('KRAKATAU WATCH', 158, 57);
-    ctx.fillStyle = '#aec4b7'; ctx.font = '13px Arial'; ctx.fillText('COASTAL INTELLIGENCE', 158, 83);
-    ctx.textAlign = 'right'; ctx.fillStyle = '#d9bd8b'; ctx.font = '700 14px Arial'; ctx.fillText('FIELD OBSERVER / 2026', w - 55, 61);
-    ctx.textAlign = 'left'; ctx.fillStyle = '#a9beb1'; ctx.font = '700 14px Arial'; ctx.fillText('CATATAN PATROLI PESISIR', 58, 1030);
-    const name = $('#photoName').value.trim() || 'Pengamat Pesisir';
-    let size = 46; ctx.font = `700 ${size}px Manrope, Arial`;
-    while (ctx.measureText(name).width > 650 && size > 26) { size -= 2; ctx.font = `700 ${size}px Manrope, Arial`; }
-    ctx.fillStyle = '#f5f2e8'; ctx.fillText(name, 58, 1090);
-    const nim = $('#photoNim').value.trim();
-    ctx.fillStyle = '#b7cabe'; ctx.font = '19px Arial'; ctx.fillText(nim ? `NIM ${nim}` : 'ANAK KRAKATAU - SELAT SUNDA', 60, 1127);
-    ctx.textAlign = 'right'; ctx.fillStyle = '#b7cabe'; ctx.font = '700 13px Arial'; ctx.fillText('SKOR PATROLI', w - 58, 1029);
-    ctx.fillStyle = '#f5f2e8'; ctx.font = '700 66px Manrope, Arial'; ctx.fillText(String(result.score || 0), w - 58, 1090);
-    ctx.fillStyle = '#d8b47b'; ctx.font = '700 17px Arial'; ctx.fillText(badge.toUpperCase(), w - 58, 1127);
-    ctx.textAlign = 'left'; ctx.strokeStyle = '#ffffff30'; ctx.beginPath(); ctx.moveTo(58, 1164); ctx.lineTo(w - 58, 1164); ctx.stroke();
-    ctx.fillStyle = '#a9beb1'; ctx.font = '14px Arial'; ctx.fillText(`${result.samples || 0} sampel  /  checkpoint ${result.quizCorrect || 0} benar dari ${result.quizTotal || 0}`, 60, 1200);
-    ctx.textAlign = 'right'; ctx.font = '12px Arial'; ctx.fillText('OBSERVATION SERIES - SELAT SUNDA', w - 58, 1280);
-    outputCanvas = canvas;
-    $('#photoOutput').src = canvas.toDataURL('image/jpeg', .94);
-    $('#photoOutput').hidden = false; $('#photoVideo').hidden = true;
-    $('#photoViewfinder').classList.add('has-photo');
-    $('#photoCameraStatus').textContent = 'FOTO SIAP';
-    $('#takePhoto').hidden = true; $('#retakePhoto').hidden = false; $('#savePhoto').disabled = false;
-    stopCamera();
+  async function capturePhoto() {
+    if (!stream || capturing || !video.videoWidth) return;
+    capturing = true;
+    $('#takePhoto').disabled = true;
+    const counter = $('#boothCountdown');
+    counter.hidden = false;
+    updateStatus(`BERSIAP · FOTO ${activeSlot + 1} / 3`);
+    try {
+      for (let count = 3; count > 0; count -= 1) {
+        counter.textContent = String(count);
+        counter.classList.remove('is-pop');
+        void counter.offsetWidth;
+        counter.classList.add('is-pop');
+        await wait(650);
+      }
+      const still = document.createElement('canvas');
+      still.width = video.videoWidth;
+      still.height = video.videoHeight;
+      still.getContext('2d').drawImage(video, 0, 0, still.width, still.height);
+      shots[activeSlot] = still;
+      const flash = $('#boothFlash');
+      flash.classList.remove('is-flashing');
+      void flash.offsetWidth;
+      flash.classList.add('is-flashing');
+      const nextEmpty = shots.findIndex((shot) => !shot);
+      activeSlot = nextEmpty >= 0 ? nextEmpty : 2;
+      updateSlots();
+      if (shots.every(Boolean)) {
+        composeOutput();
+        $('#photoOutputSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        updateStatus('3 FOTO SIAP · PREVIEW TERSEDIA');
+      } else {
+        updateStatus(`FOTO ${shots.filter(Boolean).length} / 3 TERSIMPAN`);
+      }
+    } catch (error) {
+      console.warn('Pengambilan foto gagal:', error);
+      updateStatus('PENGAMBILAN FOTO GAGAL');
+    } finally {
+      counter.hidden = true;
+      capturing = false;
+      $('#takePhoto').disabled = !stream;
+    }
   }
 
-  function save() {
+  function setTemplate(number) {
+    selectedTemplate = Number(number);
+    document.querySelectorAll('[data-template]').forEach((button) => {
+      const selected = Number(button.dataset.template) === selectedTemplate;
+      button.classList.toggle('is-selected', selected);
+      button.setAttribute('aria-pressed', String(selected));
+    });
+    $('#templateChoiceLabel').textContent = selectedTemplate === 1 ? '01 · VOLCANO' : '02 · OCEAN';
+    scheduleRender();
+    composeOutput();
+  }
+
+  function setFilter(filter) {
+    activeFilter = filter;
+    ['#photoFilter', '#outputPhotoFilter'].forEach((selector) => {
+      const select = $(selector);
+      if (select) select.value = filter;
+    });
+    scheduleRender();
+    composeOutput();
+  }
+
+  function resetSession() {
+    shots.fill(null);
+    activeSlot = 0;
+    outputCanvas = null;
+    $('#photoOutputSection').hidden = true;
+    $('#photoOutput').removeAttribute('src');
+    updateSlots();
+    $('#photoStudio').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    updateStatus(stream ? 'KAMERA SIAP · LIVE' : 'KAMERA BELUM AKTIF');
+  }
+
+  document.querySelectorAll('[data-template]').forEach((button) => button.addEventListener('click', () => setTemplate(button.dataset.template)));
+  ['#photoFilter', '#outputPhotoFilter'].forEach((selector) => {
+    const select = $(selector);
+    if (select) select.addEventListener('change', () => setFilter(select.value));
+  });
+  document.querySelectorAll('[data-photo-slot]').forEach((button) => button.addEventListener('click', () => {
+    activeSlot = Number(button.dataset.photoSlot);
+    updateSlots();
+  }));
+  $('#activatePhotoCamera').addEventListener('click', activateCamera);
+  $('#takePhoto').addEventListener('click', capturePhoto);
+  $('#retakePhoto').addEventListener('click', resetSession);
+  $('#savePhoto').addEventListener('click', () => {
     if (!outputCanvas) return;
     outputCanvas.toBlob((blob) => {
       if (!blob) return;
       const url = URL.createObjectURL(blob);
-      const link = document.createElement('a'); link.href = url; link.download = 'krakatau-watch-hasil-patroli.png'; link.click();
-      setTimeout(() => URL.revokeObjectURL(url), 1200);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `vulcaneos-photobooth-template-${selectedTemplate}.png`;
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1200);
     }, 'image/png');
-  }
+  });
+  window.addEventListener('pagehide', () => stream?.getTracks().forEach((track) => track.stop()));
 
-  $('#activatePhotoCamera').addEventListener('click', activateCamera);
-  $('#retakePhoto').addEventListener('click', activateCamera);
-  $('#takePhoto').addEventListener('click', capture);
-  $('#savePhoto').addEventListener('click', save);
-  window.addEventListener('pagehide', stopCamera);
+  updateSlots();
 })();
-
