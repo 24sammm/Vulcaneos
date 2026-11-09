@@ -5,8 +5,11 @@
   const video = $('#photoVideo');
   const templates = {};
   const frameOverlays = {};
+  const originalFrameOverlays = {};
+  const originalTemplates = {};
   const shots = [null, null, null];
-  let selectedTemplate = 1;
+  let selectedTemplate = 3;
+  let selectedOutputLayout = 'camera';
   let activeSlot = 0;
   let stream = null;
   let capturing = false;
@@ -21,11 +24,79 @@
     const image = new Image();
     image.src = `photoboothtemp${number}.jpeg`;
     image.onload = () => {
-      frameOverlays[number] = createFrameOverlay(number);
+      frameOverlays[number] = createFrameOverlay(number, 'camera');
+      originalFrameOverlays[number] = createFrameOverlay(number, 'original');
+      document.querySelectorAll(`[data-template-thumb="${number}"], .output-template[data-template="${number}"] img`).forEach((thumb) => { thumb.src = makeTemplateThumbnail(frameOverlays[number]); });
       scheduleRender();
     };
     templates[number] = image;
   });
+
+  templates[3] = createPolaroidTemplate(true);
+  originalTemplates[3] = createPolaroidTemplate(false);
+  frameOverlays[3] = createFrameOverlay(3, 'camera');
+  originalFrameOverlays[3] = createFrameOverlay(3, 'original');
+  document.querySelectorAll('[data-template-thumb="3"], .output-template[data-template="3"] img').forEach((image) => { image.src = makeTemplateThumbnail(frameOverlays[3]); });
+
+  function createPolaroidTemplate(includeCamera = true) {
+    const art = document.createElement('canvas');
+    art.width = 426; art.height = 1280;
+    const ctx = art.getContext('2d');
+    ctx.fillStyle = '#f1ede4'; ctx.fillRect(0, 0, art.width, art.height);
+    for (let i = 0; i < 1500; i += 1) {
+      ctx.fillStyle = `rgba(95,78,57,${Math.random() * .055})`;
+      ctx.fillRect(Math.random() * 426, Math.random() * 1280, 1 + Math.random() * 2, 1 + Math.random() * 2);
+    }
+
+    if (includeCamera) drawPrintCamera(ctx);
+    else {
+      ctx.fillStyle = '#a13f32'; ctx.beginPath(); ctx.arc(212, 78, 40, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#f5e9d4'; ctx.beginPath(); ctx.arc(212, 78, 31, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#4c5b4c'; ctx.font = '700 13px Arial'; ctx.textAlign = 'center'; ctx.fillText('FIELD PRINT / 03', 212, 82);
+    }
+
+    // Side clips sit behind the vertical three-frame film strip.
+    function paperclip(x, y, angle) {
+      ctx.save(); ctx.translate(x, y); ctx.rotate(angle); ctx.strokeStyle = '#a9aaa5'; ctx.lineWidth = 7; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-34, -53); ctx.quadraticCurveTo(-44, -70, -30, -77); ctx.quadraticCurveTo(-17, -82, -8, -66); ctx.lineTo(33, 12); ctx.quadraticCurveTo(42, 30, 27, 39); ctx.quadraticCurveTo(13, 46, 5, 30); ctx.lineTo(-25, -23); ctx.stroke();
+      ctx.strokeStyle = '#e4e0d7'; ctx.lineWidth = 2; ctx.stroke(); ctx.restore();
+    }
+    paperclip(39, 544, -.22); paperclip(387, 1087, .38);
+
+    ctx.fillStyle = '#741d13'; ctx.fillRect(30, 198, 366, 958);
+    ctx.fillStyle = '#541810'; ctx.fillRect(30, 198, 16, 958); ctx.fillRect(380, 198, 16, 958);
+    ctx.fillStyle = '#171917'; ctx.fillRect(72, 195, 282, 22);
+    const windows = [
+      { x: 76, y: 293, w: 274, h: 188 },
+      { x: 76, y: 557, w: 274, h: 188 },
+      { x: 76, y: 821, w: 274, h: 188 },
+    ];
+    windows.forEach(({ x, y, w, h }, index) => {
+      ctx.fillStyle = '#f7f2e9'; ctx.fillRect(x - 17, y - 16, w + 34, h + 32);
+      ctx.fillStyle = '#7b2117';
+      for (let cx = x - 13; cx <= x + w + 12; cx += 25) {
+        ctx.beginPath(); ctx.arc(cx, y - 16, 11, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx, y + h + 16, 11, 0, Math.PI * 2); ctx.fill();
+      }
+      for (let cy = y + 10; cy < y + h; cy += 25) {
+        ctx.beginPath(); ctx.arc(x - 17, cy, 11, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(x + w + 17, cy, 11, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.fillStyle = '#f7f2e9'; ctx.font = '700 10px Arial'; ctx.textAlign = 'center';
+      ctx.fillText(`FRAME ${index + 1}`, 213, y + h + 35);
+    });
+
+    // Barcode and small printed caption at the foot of the strip.
+    let bx = 82;
+    const bars = [2, 4, 1, 3, 2, 1, 5, 2, 3, 1, 4, 2, 1, 3, 5, 1, 2, 4, 1, 3, 2, 5, 1, 2, 4, 1, 3, 2, 5, 1, 3, 2, 4, 1, 2, 3, 5, 1, 2, 4];
+    ctx.fillStyle = '#f7f2e9';
+    bars.forEach((bar, index) => { const width = bar * 1.25; if (index % 2 === 0) ctx.fillRect(bx, 1064, width, 37); bx += width + 1.4; });
+    ctx.fillStyle = '#f1d8ab'; ctx.font = '700 11px Arial'; ctx.textAlign = 'center'; ctx.fillText('ANAK KRAKATAU · SELAT SUNDA', 213, 1138);
+    ctx.fillStyle = '#d7bb8d'; ctx.beginPath(); ctx.roundRect(17, 1141, 77, 78, 3); ctx.fill();
+    ctx.fillStyle = '#9f3d33'; ctx.beginPath(); ctx.arc(55, 1179, 21, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#edc56e'; ctx.font = '700 10px Arial'; ctx.fillText('VOLCANEOS', 55, 1212);
+    return art;
+  }
 
   const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
 
@@ -54,33 +125,65 @@
     $('#photoCameraStatus').classList.toggle('is-live', live);
   }
 
-  function clipWindow(ctx, template, index) {
+  function clipWindow(ctx, template, index, layout = 'camera') {
     ctx.beginPath();
+    if (template === 3) {
+      const windows = [
+        { x: 76, y: 293, w: 274, h: 188 },
+        { x: 76, y: 557, w: 274, h: 188 },
+        { x: 76, y: 821, w: 274, h: 188 },
+      ];
+      const { x, y, w, h } = windows[index];
+      ctx.rect(x, y, w, h);
+      return { x, y, w, h };
+    }
+    const printScale = layout === 'camera' ? .82 : 1;
+    const printOffsetX = (426 - 426 * printScale) / 2;
+    const printOffsetY = layout === 'camera' ? 222 : 0;
     if (template === 1) {
       const windows = [
         { x: 42, y: 230, w: 341, h: 248 },
         { x: 42, y: 516, w: 341, h: 249 },
         { x: 42, y: 803, w: 341, h: 249 },
       ];
-      const { x, y, w, h } = windows[index];
+      const sourceWindow = windows[index];
+      const x = printOffsetX + sourceWindow.x * printScale;
+      const y = printOffsetY + sourceWindow.y * printScale;
+      const w = sourceWindow.w * printScale;
+      const h = sourceWindow.h * printScale;
       ctx.rect(x, y, w, h);
       return { x, y, w, h };
     }
     if (index === 0) {
-      ctx.moveTo(55, 285);
-      ctx.quadraticCurveTo(55, 136, 218, 136);
-      ctx.quadraticCurveTo(382, 136, 382, 285);
-      ctx.lineTo(382, 432);
-      ctx.lineTo(55, 432);
+      // Match the arched first window in photoboothtemp2 and extend slightly
+      // beneath its printed edge so no checkerboard sliver survives scaling.
+      ctx.moveTo(printOffsetX + 53 * printScale, printOffsetY + 286 * printScale);
+      ctx.quadraticCurveTo(printOffsetX + 53 * printScale, printOffsetY + 129 * printScale, printOffsetX + 218 * printScale, printOffsetY + 129 * printScale);
+      ctx.quadraticCurveTo(printOffsetX + 384 * printScale, printOffsetY + 129 * printScale, printOffsetX + 384 * printScale, printOffsetY + 286 * printScale);
+      ctx.lineTo(printOffsetX + 384 * printScale, printOffsetY + 434 * printScale);
+      ctx.lineTo(printOffsetX + 53 * printScale, printOffsetY + 434 * printScale);
       ctx.closePath();
-      return { x: 55, y: 136, w: 327, h: 296 };
+      return { x: printOffsetX + 53 * printScale, y: printOffsetY + 129 * printScale, w: 331 * printScale, h: 305 * printScale };
     }
     if (index === 1) {
-      ctx.rect(55, 445, 327, 258);
-      return { x: 55, y: 445, w: 327, h: 258 };
+      // The second opening is square-cornered; add a 2 px bleed around it.
+      ctx.rect(printOffsetX + 53 * printScale, printOffsetY + 442 * printScale, 331 * printScale, 263 * printScale);
+      return { x: printOffsetX + 53 * printScale, y: printOffsetY + 442 * printScale, w: 331 * printScale, h: 263 * printScale };
     }
-    ctx.roundRect(55, 718, 327, 286, 48);
-    return { x: 55, y: 718, w: 327, h: 286 };
+    // The last opening has square top corners and rounded bottom corners only.
+    const left = printOffsetX + 53 * printScale;
+    const right = printOffsetX + 384 * printScale;
+    const top = printOffsetY + 716 * printScale;
+    const bottom = printOffsetY + 1007 * printScale;
+    const radius = 51 * printScale;
+    ctx.moveTo(left, top);
+    ctx.lineTo(right, top);
+    ctx.lineTo(right, bottom - radius);
+    ctx.quadraticCurveTo(right, bottom, right - radius, bottom);
+    ctx.lineTo(left + radius, bottom);
+    ctx.quadraticCurveTo(left, bottom, left, bottom - radius);
+    ctx.closePath();
+    return { x: left, y: top, w: right - left, h: bottom - top };
   }
 
   function drawCover(ctx, source, x, y, width, height) {
@@ -239,19 +342,54 @@
     ctx.drawImage(prepared, x, y, width, height);
   }
 
-  function createFrameOverlay(number) {
+  function createFrameOverlay(number, layout = 'camera') {
     const overlay = document.createElement('canvas');
     overlay.width = 426;
     overlay.height = 1280;
     const overlayContext = overlay.getContext('2d');
-    overlayContext.drawImage(templates[number], 0, 0, overlay.width, overlay.height);
+    if (number < 3 && layout === 'camera') {
+      const printScale = .82;
+      const printOffsetX = (overlay.width - overlay.width * printScale) / 2;
+      overlayContext.fillStyle = '#f1ede4'; overlayContext.fillRect(0, 0, overlay.width, overlay.height);
+      overlayContext.drawImage(templates[number], 0, 0, overlay.width, overlay.height, printOffsetX, 222, overlay.width * printScale, overlay.height * printScale);
+      drawPrintCamera(overlayContext);
+    } else if (number < 3) {
+      overlayContext.drawImage(templates[number], 0, 0, overlay.width, overlay.height);
+    } else {
+      const source = layout === 'original' ? originalTemplates[number] : templates[number];
+      overlayContext.drawImage(source, 0, 0, overlay.width, overlay.height);
+    }
     overlayContext.globalCompositeOperation = 'destination-out';
     for (let index = 0; index < 3; index += 1) {
-      clipWindow(overlayContext, number, index);
+      clipWindow(overlayContext, number, index, layout);
       overlayContext.fill();
     }
     overlayContext.globalCompositeOperation = 'source-over';
     return overlay;
+  }
+
+  function makeTemplateThumbnail(frame) {
+    const thumb = document.createElement('canvas');
+    thumb.width = 426; thumb.height = 1280;
+    const thumbContext = thumb.getContext('2d');
+    thumbContext.fillStyle = '#e7e7df'; thumbContext.fillRect(0, 0, thumb.width, thumb.height);
+    thumbContext.drawImage(frame, 0, 0);
+    return thumb.toDataURL('image/png');
+  }
+
+  function drawPrintCamera(ctx) {
+    ctx.fillStyle = '#191b19'; ctx.beginPath(); ctx.roundRect(18, -42, 390, 276, 30); ctx.fill();
+    ctx.fillStyle = '#f3e8d3'; ctx.beginPath(); ctx.roundRect(27, -37, 372, 257, 24); ctx.fill();
+    ctx.fillStyle = '#252624'; ctx.fillRect(27, 169, 372, 49);
+    ctx.fillStyle = '#171917'; ctx.beginPath(); ctx.roundRect(143, 15, 140, 130, 20); ctx.fill();
+    ctx.fillStyle = '#66716c'; ctx.beginPath(); ctx.arc(213, 80, 47, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#202824'; ctx.beginPath(); ctx.arc(213, 80, 35, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#d9e2d9'; ctx.beginPath(); ctx.arc(199, 65, 10, 0, Math.PI * 2); ctx.fill();
+    for (const stripe of [{ x: 177, c: '#e34b34' }, { x: 198, c: '#f1b43e' }, { x: 219, c: '#57a9c1' }]) {
+      ctx.fillStyle = stripe.c; ctx.fillRect(stripe.x, 0, 17, 54);
+    }
+    ctx.fillStyle = '#343531'; ctx.font = '700 13px Arial'; ctx.textAlign = 'center'; ctx.fillText('POLAROID CAMERA', 213, 164);
+    ctx.fillStyle = '#171917'; ctx.fillRect(72, 195, 282, 22);
   }
 
   function drawLiveCanvas() {
@@ -266,16 +404,10 @@
       if (source) {
         drawFilteredCover(context, source, x, y, w, h, index);
       } else {
-        context.fillStyle = index === activeSlot ? '#28413d' : '#1d3434';
+        // Keep empty preview windows in the same warm paper tone as the studio;
+        // never render instructional labels into the image area.
+        context.fillStyle = '#f1ede4';
         context.fillRect(x, y, w, h);
-        context.fillStyle = '#e6d5b7';
-        context.textAlign = 'center';
-        context.textBaseline = 'middle';
-        context.font = '600 16px Manrope, Arial';
-        context.fillText(`FOTO ${index + 1}`, x + w / 2, y + h / 2 - 8);
-        context.fillStyle = '#bfd0c5';
-        context.font = '12px Arial';
-        context.fillText(shots[index] ? 'TERISI' : 'KOTAK FOTO', x + w / 2, y + h / 2 + 15);
       }
       context.restore();
     }
@@ -303,8 +435,16 @@
   }
 
   function composeOutput() {
-    if (!shots.every(Boolean)) return;
-    const frame = frameOverlays[selectedTemplate];
+    // A printable/downloadable result only exists after all three real
+    // captures are present. This prevents preview placeholders from leaking
+    // into a PNG if a template or output option changes mid-session.
+    if (!shots.every((shot) => shot instanceof HTMLCanvasElement && shot.width > 0 && shot.height > 0)) {
+      outputCanvas = null;
+      $('#photoOutput').removeAttribute('src');
+      $('#photoOutputSection').hidden = true;
+      return;
+    }
+    const frame = (selectedOutputLayout === 'original' ? originalFrameOverlays : frameOverlays)[selectedTemplate];
     if (!frame) return;
     const result = document.createElement('canvas');
     const outputDimensions = activeOutputSize === 'mobile'
@@ -320,7 +460,7 @@
     resultContext.fillStyle = '#102629';
     resultContext.fillRect(0, 0, 426, 1280);
     shots.forEach((still, index) => {
-      const { x, y, w, h } = clipWindow(resultContext, selectedTemplate, index);
+      const { x, y, w, h } = clipWindow(resultContext, selectedTemplate, index, selectedOutputLayout);
       resultContext.save();
       resultContext.clip();
       drawFilteredCover(resultContext, still, x, y, w, h, index, qualityScale);
@@ -408,7 +548,7 @@
       button.classList.toggle('is-selected', selected);
       button.setAttribute('aria-pressed', String(selected));
     });
-    $('#templateChoiceLabel').textContent = selectedTemplate === 1 ? '01 · VOLCANO' : '02 · OCEAN';
+    $('#templateChoiceLabel').textContent = ({ 1: '01 · VOLCANO', 2: '02 · OCEAN', 3: '03 · POLAROID' })[selectedTemplate];
     scheduleRender();
     composeOutput();
   }
@@ -435,6 +575,15 @@
   }
 
   document.querySelectorAll('[data-template]').forEach((button) => button.addEventListener('click', () => setTemplate(button.dataset.template)));
+  document.querySelectorAll('[data-output-layout]').forEach((button) => button.addEventListener('click', () => {
+    selectedOutputLayout = button.dataset.outputLayout;
+    document.querySelectorAll('[data-output-layout]').forEach((option) => {
+      const selected = option === button;
+      option.classList.toggle('is-selected', selected);
+      option.setAttribute('aria-pressed', String(selected));
+    });
+    composeOutput();
+  }));
   ['#photoFilter', '#outputPhotoFilter'].forEach((selector) => {
     const select = $(selector);
     if (select) select.addEventListener('change', () => setFilter(select.value));
