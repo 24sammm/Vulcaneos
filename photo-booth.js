@@ -13,6 +13,7 @@
   let outputCanvas = null;
   let renderRequest = 0;
   let activeFilter = 'none';
+  let activeOutputSize = 'large';
   let lastLiveRender = 0;
   let liveRenderTimer = 0;
 
@@ -306,18 +307,23 @@
     const frame = frameOverlays[selectedTemplate];
     if (!frame) return;
     const result = document.createElement('canvas');
-    const outputScale = 2;
-    result.width = 426 * outputScale;
-    result.height = 1280 * outputScale;
+    const outputDimensions = activeOutputSize === 'mobile'
+      ? { width: 600, height: 1800 }
+      : { width: 852, height: 2560 };
+    const outputScaleX = outputDimensions.width / 426;
+    const outputScaleY = outputDimensions.height / 1280;
+    const qualityScale = Math.max(outputScaleX, outputScaleY);
+    result.width = outputDimensions.width;
+    result.height = outputDimensions.height;
     const resultContext = result.getContext('2d');
-    resultContext.scale(outputScale, outputScale);
+    resultContext.scale(outputScaleX, outputScaleY);
     resultContext.fillStyle = '#102629';
     resultContext.fillRect(0, 0, 426, 1280);
     shots.forEach((still, index) => {
       const { x, y, w, h } = clipWindow(resultContext, selectedTemplate, index);
       resultContext.save();
       resultContext.clip();
-      drawFilteredCover(resultContext, still, x, y, w, h, index, outputScale);
+      drawFilteredCover(resultContext, still, x, y, w, h, index, qualityScale);
       resultContext.restore();
     });
     resultContext.drawImage(frame, 0, 0, 426, 1280);
@@ -433,6 +439,10 @@
     const select = $(selector);
     if (select) select.addEventListener('change', () => setFilter(select.value));
   });
+  $('#downloadSize').addEventListener('change', (event) => {
+    activeOutputSize = event.target.value;
+    composeOutput();
+  });
   document.querySelectorAll('[data-photo-slot]').forEach((button) => button.addEventListener('click', () => {
     activeSlot = Number(button.dataset.photoSlot);
     updateSlots();
@@ -447,7 +457,7 @@
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `vulcaneos-photobooth-template-${selectedTemplate}.png`;
+      link.download = `vulcaneos-photobooth-${outputCanvas.width}x${outputCanvas.height}.png`;
       link.click();
       window.setTimeout(() => URL.revokeObjectURL(url), 1200);
     }, 'image/png');
