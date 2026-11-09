@@ -87,7 +87,7 @@
 .about-page .landing-about { padding-top: clamp(65px,9vw,118px); padding-bottom: clamp(70px,9vw,120px); }
 .about-page .editorial-heading h1 { margin: 14px 0; color: var(--v-ink); font: 400 clamp(42px,6vw,76px)/.96 var(--v-display); letter-spacing: -.025em; }
 .about-page .editorial-heading h1 em { color: #6c8979; font-weight: 400; }
-.about-hero { position: relative; isolation: isolate; display: grid; min-height: min(76svh,760px); place-items: center; overflow: hidden; background-color: #183432; background-image: linear-gradient(180deg,#10242365 0%,#10242345 34%,#102423a8 100%),url("https://media.gettyimages.com/id/140189953/photo/may-19-2008-ash-cloud-from-vulcanian-eruption-of-anak-krakatau-volcano-sunda-strait-java.jpg?s=612x612&w=0&k=20&c=Igk64iFdcvzn41Sn4LT28Jezsz8QdsS6O14zEfbccro="); background-position: center,center; background-size: cover,cover; background-repeat: no-repeat; }
+.about-hero { position: relative; isolation: isolate; display: grid; min-height: min(76svh,760px); place-items: center; overflow: hidden; background-color: #183432; background-image: linear-gradient(180deg,#10242365 0%,#10242345 34%,#102423a8 100%),url("krakatau.jpg"); background-position: center,center; background-size: cover,cover; background-repeat: no-repeat; }
 .about-hero:after { position: absolute; z-index: 0; inset: 18px; border: 1px solid #f3f1e42e; content: ""; pointer-events: none; }
 .about-hero-copy { position: relative; z-index: 1; padding: 70px 24px; color: #f6f3ea; text-align: center; text-shadow: 0 2px 24px #0c211fbf; }
 .about-hero-copy>span { color: #d5dfd3; font: 700 8px var(--v-sans); letter-spacing: .24em; }
