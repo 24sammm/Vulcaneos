@@ -1,4 +1,4 @@
-﻿const $ = (selector, root = document) => root.querySelector(selector);
+const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 const parameterData = {
   sst: {
@@ -28,6 +28,10 @@ const parameterData = {
 };
 const selectedYears = { sst: 2017, chlorophyll: 2017, tss: 2017 };
 const loadedParameters = {};
+const morphologyLoads = {};
+const loadedMorphologies = {};
+let selectedMorphologyYear = 2017;
+const morphologyClassColors = { 0: '#4e9ca0', 1: '#d8a46f' };
 const riskBands = { normal: true, siaga: true, awas: true };
 const parameterLayerId = (series, year) => `${series}-${year}-fill`;
 let viewer = null;
@@ -242,6 +246,40 @@ async function ensureParameterLayer(series, year) {
     throw error;
   });
   return parameterLoads[id];
+}
+
+async function ensureMorphologyLayer(year) {
+  const id = `morphology-${year}`;
+  if (loadedMorphologies[year]) return loadedMorphologies[year];
+  if (morphologyLoads[year]) return morphologyLoads[year];
+  morphologyLoads[year] = (async () => {
+    const response = await fetch(`./JSON/Morfologi_Kelas_AnakKrakatau_${year}.geojson`);
+    if (!response.ok) throw new Error(`Tidak dapat memuat data morfologi ${year}.`);
+    const data = await response.json();
+    const totals = { 0: 0, 1: 0 };
+    data.features.forEach((feature) => {
+      const code = Number(feature.properties?.kelas);
+      if (code in totals) totals[code] += Number(feature.properties?.luas_ha || 0);
+    });
+    await addCesiumGeoJsonLayer(id, data, (_entity, properties) => {
+      const code = Number(properties?.kelas?.getValue?.(Cesium.JulianDate.now()) ?? properties?.kelas);
+      return { fill: Cesium.Color.fromCssColorString(morphologyClassColors[code] || '#8e9a91').withAlpha(code === 1 ? .72 : .24) };
+    }, false);
+    return { totals, year, id };
+  })().then((result) => {
+    loadedMorphologies[year] = result;
+    return result;
+  }).catch((error) => {
+    delete morphologyLoads[year];
+    throw error;
+  });
+  return morphologyLoads[year];
+}
+
+function renderMorphologyInfo(totals, year) {
+  const panel = $('#morphologyInfo');
+  panel.innerHTML = `<label>MORFOLOGI ANAK KRAKATAU · ${year}</label><div class="morphology-class-row"><i style="--class-color:${morphologyClassColors[0]}"></i><span>Perairan · kelas 0</span><b>${totals[0].toLocaleString('id-ID', { maximumFractionDigits: 2 })} ha</b></div><div class="morphology-class-row"><i style="--class-color:${morphologyClassColors[1]}"></i><span>Daratan · kelas 1</span><b>${totals[1].toLocaleString('id-ID', { maximumFractionDigits: 2 })} ha</b></div><small>Luas merupakan jumlah atribut luas_ha pada poligon GeoJSON.</small>`;
+  panel.hidden = false;
 }
 
 $$('.nav-item').forEach((link) => link.addEventListener('click', () => {
@@ -639,6 +677,7 @@ async function initializeMapData() {
     const entity = pickedEntities.find((item) => item.id === 'anak-krakatau-marker')
       || pickedEntities.find((item) => /^(sst|chlorophyll|tss)-\d+-fill$/.test(item.__mapLayerId || ''))
       || pickedEntities.find((item) => item.__mapLayerId === 'shoreline-epr')
+      || pickedEntities.find((item) => item.__mapLayerId?.startsWith('morphology-'))
       || pickedEntities.find((item) => item.__mapLayerId?.startsWith('risk-'));
     if (!entity || !entity.__mapLayerId) {
       $('#cesiumPopup').hidden = true;
@@ -661,8 +700,9 @@ async function initializeMapData() {
       const dateLabel = window.shorelineDateLabel || ((value) => value);
       lines.push(`Transek ${dateLabel(props.start_date)}–${dateLabel(props.end_date)}`, `EPR: ${Number(props.epr).toFixed(2)} m/tahun`, `NSM: ${Number(props.nsm).toFixed(2)} m`);
     }
+    if (layerId.startsWith('morphology-')) lines.push(`Kelas ${props.kelas}: ${props.nama_kelas}`, `Luas poligon: ${Number(props.luas_ha).toLocaleString('id-ID', { maximumFractionDigits: 2 })} ha`, `Tahun data: ${props.tahun}`);
     if (layerId.startsWith('risk-')) lines.push(`Zona ${props.zone} · radius simulasi ${props.zone === 'normal' ? '0–3' : props.zone === 'siaga' ? '3–5' : '5–8'} km`);
-    showCesiumPopup(event.position, layerId === 'shoreline-epr' ? 'Transek garis pantai' : 'Informasi titik', lines);
+    showCesiumPopup(event.position, layerId === 'shoreline-epr' ? 'Transek garis pantai' : layerId.startsWith('morphology-') ? 'Morfologi Anak Krakatau' : 'Informasi titik', lines);
   }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 }
 initializeMapData().catch((error) => { console.warn('Layer peta Cesium:', error); toast('Sebagian layer peta gagal dimuat'); });
@@ -675,6 +715,34 @@ $$('.layer-list input').forEach((input) => input.addEventListener('change', () =
   if (series === 'shoreline-rates') {
     setCesiumLayerVisibility('shoreline-epr', input.checked);
     toast(input.checked ? 'Transek garis pantai ditampilkan' : 'Transek garis pantai disembunyikan');
+    return;
+  }
+
+  if (series === 'morphology') {
+    const info = $('#morphologyInfo');
+    const yearSelector = $('#morphologyYear');
+    if (!input.checked) {
+      Object.keys(loadedMorphologies).forEach((year) => setCesiumLayerVisibility(`morphology-${year}`, false));
+      yearSelector.hidden = true;
+      info.hidden = true;
+      toast('Layer morfologi disembunyikan');
+      return;
+    }
+    yearSelector.hidden = false;
+    selectedMorphologyYear = Number(yearSelector.value);
+    ensureMorphologyLayer(selectedMorphologyYear).then(({ totals, year, id }) => {
+      if (!input.checked || selectedMorphologyYear !== year) return;
+      Object.keys(loadedMorphologies).forEach((loadedYear) => setCesiumLayerVisibility(`morphology-${loadedYear}`, false));
+      setCesiumLayerVisibility(id, true);
+      renderMorphologyInfo(totals, year);
+      toast(`Morfologi Anak Krakatau ${year} ditampilkan`);
+    }).catch((error) => {
+      input.checked = false;
+      yearSelector.hidden = true;
+      info.hidden = true;
+      toast(`Data morfologi ${selectedMorphologyYear} gagal dimuat`);
+      console.warn(error);
+    });
     return;
   }
 
@@ -728,6 +796,25 @@ $$('.layer-list input').forEach((input) => input.addEventListener('change', () =
   toast(`${input.closest('label').textContent.trim()}: layer demo belum tersedia`);
   input.checked = false;
 }));
+
+$('#morphologyYear').addEventListener('change', (event) => {
+  selectedMorphologyYear = Number(event.target.value);
+  const toggle = $('[data-layer="morphology"]');
+  const info = $('#morphologyInfo');
+  Object.keys(loadedMorphologies).forEach((year) => setCesiumLayerVisibility(`morphology-${year}`, false));
+  info.hidden = true;
+  if (!toggle.checked) return;
+  const requestedYear = selectedMorphologyYear;
+  ensureMorphologyLayer(requestedYear).then(({ totals, year, id }) => {
+    if (!toggle.checked || selectedMorphologyYear !== year) return;
+    setCesiumLayerVisibility(id, true);
+    renderMorphologyInfo(totals, year);
+    toast(`Morfologi Anak Krakatau ${year} ditampilkan`);
+  }).catch((error) => {
+    toast(`Data morfologi ${requestedYear} gagal dimuat`);
+    console.warn(error);
+  });
+});
 
 const riskNoticeDetails = {
   normal: { name: 'Normal', range: '0–3 km', innerRadius: 0, outerRadius: 3, color: '#7ca68d', text: 'Zona simulasi terdekat yang mencakup radius hingga 3 km dari Anak Krakatau.' },
@@ -861,6 +948,7 @@ const downloadGroups = [
     files: Object.entries(config.years).map(([year, filename]) => ({ label: year, filename })),
   })),
   { label: 'Transek garis pantai', files: [{ label: '2017–2025 · EPR / NSM', filename: 'GarisPantaifix_WGS84.geojson' }] },
+  { label: 'Morfologi Anak Krakatau', files: [2017, 2019, 2021, 2025].map((year) => ({ label: `${year} · kelas daratan dan perairan`, filename: `Morfologi_Kelas_AnakKrakatau_${year}.geojson` })) },
 ];
 $('#downloadLinks').innerHTML = downloadGroups.map((group) => `<section class="download-group"><b>${group.label}</b><div>${group.files.map(({ label, filename }) => `<a href="./JSON/${filename}" download="${filename}"><span>${label}</span><i class="fa-solid fa-download" aria-hidden="true"></i></a>`).join('')}</div></section>`).join('');
 $('#downloadClose').addEventListener('click', () => $('#downloadModal').classList.remove('open'));
