@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="photo-booth.css?v=20261109-8" />
+  <link rel="stylesheet" href="photo-booth.css?v=20261109-9" />
 </head>
 <body class="photo-page">
   <header class="photo-header">
@@ -103,6 +103,11 @@
             <option value="mist">Black Glow · Mist</option>
             <option value="retro-black">Retro Black · Film Noir</option>
           </select>
+          <label class="filter-select-label download-size-label" for="downloadSize"><span><i class="fa-solid fa-expand"></i> UKURAN PNG</span><small>Untuk unduhan</small></label>
+          <select class="photo-filter-select download-size-select" id="downloadSize">
+            <option value="large">852 × 2560 px · Resolusi tinggi</option>
+            <option value="mobile">600 × 1800 px · Ringkas</option>
+          </select>
           </section>
           <div class="output-actions"><button class="output-retake" id="retakePhoto" type="button"><i class="fa-solid fa-rotate-left"></i> Ulangi sesi foto</button><button class="output-download" id="savePhoto" type="button"><i class="fa-solid fa-download"></i> Unduh foto PNG</button></div>
           <p class="output-privacy"><i class="fa-solid fa-lock"></i> Foto tetap di perangkatmu dan tidak diunggah.</p>
@@ -110,6 +115,6 @@
       </div>
     </section>
   </main>
-  <script src="photo-booth.js?v=20261109-6"></script>
+  <script src="photo-booth.js?v=20261109-7"></script>
 </body>
 </html>
