@@ -37,6 +37,7 @@
   const selectedYears = { sst: 2017, chlorophyll: 2017, tss: 2017 };
   const dataSources = new Map();
   const loadingLayers = new Map();
+  let activeLegend = null;
   const $ = (selector, root = document) => root.querySelector(selector);
   const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
   const loading = $('#publicMapLoading');
@@ -145,6 +146,38 @@
     return { stroke: Cesium.Color.fromCssColorString(epr >= 0 ? '#59c8c5' : '#db916f').withAlpha(.96), width: 3.5 };
   }, shorelineInput.checked).catch((error) => { shorelineInput.checked = false; console.warn('Transek peta publik:', error); });
 
+  const morphologyInput = $('[data-public-layer="morphology"]');
+  const morphologyYearSelect = $('#publicMorphologyYear');
+  const morphologyColors = { 0: '#4e9ca0', 1: '#d8a46f' };
+  let selectedMorphologyYear = Number(morphologyYearSelect.value);
+
+  function setMorphologyYear(year) {
+    selectedMorphologyYear = Number(year);
+    dataSources.forEach((entry, layerId) => {
+      if (layerId.startsWith('morphology-')) entry.source.show = false;
+    });
+    if (activeLegend?.startsWith('morphology-')) $('#publicParameterLegend').hidden = true;
+    if (!morphologyInput.checked) return;
+    const id = `morphology-${selectedMorphologyYear}`;
+    const filename = `Morfologi_Kelas_AnakKrakatau_${selectedMorphologyYear}.geojson`;
+    loadGeoJson(id, filename, (_entity, properties) => {
+      const code = Number(valueOf(properties, 'kelas'));
+      return { fill: Cesium.Color.fromCssColorString(morphologyColors[code] || '#8e9a91').withAlpha(code === 1 ? .72 : .24) };
+    }, false).then(() => {
+      if (!morphologyInput.checked || selectedMorphologyYear !== Number(year)) return;
+      dataSources.forEach((entry, layerId) => {
+        if (layerId.startsWith('morphology-')) entry.source.show = layerId === id;
+      });
+      renderMorphologyLegend(dataSources.get(id).data, Number(year));
+    }).catch((error) => {
+      if (selectedMorphologyYear === Number(year)) {
+        morphologyInput.checked = false;
+        morphologyYearSelect.hidden = true;
+      }
+      console.warn(`Morfologi Anak Krakatau ${year}:`, error);
+    });
+  }
+
   const toRing = (radiusKm, altitude = 8) => {
     const positions = [];
     const latScale = 111.32;
@@ -249,6 +282,19 @@
     }).join('');
     $('#publicParameterTitle').textContent = `${config.label} · ${year}`;
     $('#publicParameterLegendRows').innerHTML = `<div class="parameter-colorbar" aria-hidden="true">${config.colors.map((color) => `<i style="--sample-color:${color}"></i>`).join('')}</div><div class="parameter-class-list">${labels}</div>`;
+    activeLegend = `${series}-${year}`;
+    $('#publicParameterLegend').hidden = false;
+  }
+
+  function renderMorphologyLegend(data, year) {
+    const totals = { 0: 0, 1: 0 };
+    data.features.forEach((feature) => {
+      const code = Number(feature.properties?.kelas);
+      if (code in totals) totals[code] += Number(feature.properties?.luas_ha || 0);
+    });
+    $('#publicParameterTitle').textContent = `Morfologi Anak Krakatau · ${year}`;
+    $('#publicParameterLegendRows').innerHTML = `<div class="parameter-class-list morphology-class-list">${[[0, 'Perairan'], [1, 'Daratan']].map(([code, label]) => `<div class="parameter-class"><i style="--sample-color:${morphologyColors[code]}"></i><span>${label} · kelas ${code}</span><b>${totals[code].toLocaleString('id-ID', { maximumFractionDigits: 2 })} ha</b></div>`).join('')}</div>`;
+    activeLegend = `morphology-${year}`;
     $('#publicParameterLegend').hidden = false;
   }
 
@@ -261,9 +307,22 @@
       if (entry) entry.source.show = input.checked;
       else if (input.checked) loadGeoJson('shoreline', 'GarisPantaifix_WGS84.geojson', (_entity, properties) => ({ stroke: Cesium.Color.fromCssColorString(Number(valueOf(properties, 'epr')) >= 0 ? '#59c8c5' : '#db916f').withAlpha(.96), width: 3.5 }), true).catch(console.warn);
     }
+    if (key === 'morphology') {
+      if (input.checked) {
+        morphologyYearSelect.hidden = false;
+        setMorphologyYear(morphologyYearSelect.value);
+      } else {
+        morphologyYearSelect.hidden = true;
+        dataSources.forEach((entry, layerId) => {
+          if (layerId.startsWith('morphology-')) entry.source.show = false;
+        });
+        if (activeLegend?.startsWith('morphology-')) $('#publicParameterLegend').hidden = true;
+      }
+    }
     if (key === 'risk') riskEntities.forEach((entity) => { entity.show = input.checked; });
     if (params[key]) setParameter(key, selectedYears[key], input.checked);
   }));
+  morphologyYearSelect.addEventListener('change', () => setMorphologyYear(morphologyYearSelect.value));
   $$('[data-public-year]').forEach((button) => button.addEventListener('click', () => {
     const series = button.dataset.publicYear;
     const year = Number(button.dataset.year);
@@ -336,6 +395,7 @@
     if (layerId === 'marker') lines.push('Pulau vulkanik aktif di Selat Sunda', 'Simbol asap hanya ilustrasi, bukan telemetri langsung');
     else if (layerId === 'shoreline') lines.push(`EPR: ${Number(props.epr).toFixed(2)} m/tahun`, `NSM: ${Number(props.nsm).toFixed(2)} m`);
     else if (layerId === 'risk') lines.push(`Radius ${props.range}`, 'Zona simulasi, bukan peringatan resmi');
+    else if (layerId.startsWith('morphology-')) lines.push(`Kelas ${props.kelas}: ${props.nama_kelas}`, `Luas poligon: ${Number(props.luas_ha).toLocaleString('id-ID', { maximumFractionDigits: 2 })} ha`, `Tahun data: ${props.tahun}`);
     else {
       const [series, year] = layerId.split('-');
       const code = Number(props.gridcode);
@@ -344,7 +404,7 @@
       const unit = params[series].unit ? ` ${params[series].unit}` : '';
       lines.push(range ? `${params[series].label} kelas ${code}: ${median}${unit}` : `Gridcode ${code}`);
     }
-    const popupTitle = layerId === 'shoreline' ? 'Transek garis pantai' : layerId === 'risk' ? `Zona ${props.zone}` : layerId === 'marker' ? 'Anak Krakatau' : `${params[layerId.split('-')[0]].label} ${layerId.split('-')[1]}`;
+    const popupTitle = layerId === 'shoreline' ? 'Transek garis pantai' : layerId === 'risk' ? `Zona ${props.zone}` : layerId === 'marker' ? 'Anak Krakatau' : layerId.startsWith('morphology-') ? 'Morfologi Anak Krakatau' : `${params[layerId.split('-')[0]].label} ${layerId.split('-')[1]}`;
     popup.innerHTML = `<button type="button" aria-label="Tutup">&times;</button><b>${popupTitle}</b>${lines.map((line) => `<span>${line}</span>`).join('')}`;
     const close = $('button', popup);
     close.addEventListener('click', () => { popup.hidden = true; });
