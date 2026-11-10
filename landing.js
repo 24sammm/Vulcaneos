@@ -20,6 +20,34 @@ document.querySelectorAll('[data-enter-webgis]').forEach((button) => {
   button.addEventListener('click', () => window.location.assign('login.html'));
 });
 
+const homeThemeToggle = document.querySelector('[data-home-theme-toggle]');
+if (homeThemeToggle) {
+  const themeRoot = document.documentElement;
+  const themeColor = document.querySelector('meta[name="theme-color"]');
+
+  const updateHomeThemeControl = () => {
+    const isNight = themeRoot.dataset.homeTheme === 'night';
+    homeThemeToggle.setAttribute('aria-pressed', String(isNight));
+    homeThemeToggle.setAttribute('aria-label', isNight ? 'Aktifkan mode terang' : 'Aktifkan Night mode');
+    homeThemeToggle.innerHTML = isNight
+      ? '<i class="fa-solid fa-sun" aria-hidden="true"></i><span>Mode terang</span>'
+      : '<i class="fa-regular fa-moon" aria-hidden="true"></i><span>Night mode</span>';
+    if (themeColor) themeColor.content = isNight ? '#101820' : '#f4f3ee';
+  };
+
+  updateHomeThemeControl();
+  homeThemeToggle.addEventListener('click', () => {
+    const nextTheme = themeRoot.dataset.homeTheme === 'night' ? 'current' : 'night';
+    themeRoot.dataset.homeTheme = nextTheme;
+    updateHomeThemeControl();
+    try {
+      localStorage.setItem('vulcaneos-home-theme', nextTheme);
+    } catch (error) {
+      console.warn('Preferensi tema beranda tidak dapat disimpan.', error);
+    }
+  });
+}
+
 const revealTargets = document.querySelectorAll(
   '.landing-copy, .landing-visual, .editorial-heading, .landing-about article, .landing-background article, .content-hero, .story-aside, .story-copy, .purpose-card, .purpose-note, .page-cta, .section-intro, .data-item, .data-footnote, .landing-method > div, .landing-method > p, .landing-text-link, .home-landing [data-reveal], [data-reveal]',
 );
