@@ -6,6 +6,16 @@
   <meta name="theme-color" content="#f4f3ee" />
   <meta name="description" content="Tujuan pengembangan platform WebGIS VULCANEOS." />
   <title>Tujuan | VULCANEOS</title>
+  <script>
+    try {
+      if (localStorage.getItem('vulcaneos-home-theme') === 'night') {
+        document.documentElement.dataset.homeTheme = 'night';
+        document.querySelector('meta[name="theme-color"]').content = '#101820';
+      }
+    } catch (error) {
+      console.warn('Preferensi tema tidak dapat dibaca.', error);
+    }
+  </script>
   <link rel="icon" type="image/png" sizes="32x32" href="volcanoes-favicon-32.png?v=2" />
   <link rel="icon" type="image/png" sizes="512x512" href="volcanoes-favicon.png?v=2" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -16,8 +26,9 @@
   <link rel="stylesheet" href="landing-v2.css?v=home-layout-3" />
   <link rel="stylesheet" href="logo.css" />
   <link rel="stylesheet" href="pages.css?v=hv-2" />
+  <link rel="stylesheet" href="home-theme.css?v=5" />
 </head>
-<body class="landing-body">
+<body class="landing-body purpose-landing">
 <div class="landing-page purpose-landing" id="purposePage">
 
   <!-- NAV -->
@@ -32,8 +43,11 @@
       <a href="latar-belakang.html">Latar belakang</a>
       <a href="tujuan.html" aria-current="page">Tujuan</a>
       <a href="game.html">Game</a>
-      <a href="misi.html">Photobooth</a>
+      <a href="sumber.html">Sumber</a>
     </nav>
+    <button class="home-theme-toggle" type="button" data-home-theme-toggle aria-pressed="false" aria-label="Aktifkan Night mode">
+      <i class="fa-regular fa-moon" aria-hidden="true"></i><span>Night mode</span>
+    </button>
     <button class="landing-open" type="button" data-enter-webgis>Login Admin <i class="fa-solid fa-arrow-right-to-bracket" aria-hidden="true"></i></button>
     <button class="landing-menu-toggle" type="button" aria-label="Buka navigasi" aria-expanded="false"><i class="fa-solid fa-bars"></i></button>
   </header>
