@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
@@ -12,39 +12,237 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="landing-v2.css" />
+  <link rel="stylesheet" href="style.css?v=remove-marker-1" />
+  <link rel="stylesheet" href="landing-v2.css?v=home-layout-3" />
   <link rel="stylesheet" href="logo.css" />
-  <link rel="stylesheet" href="pages.css" />
+  <link rel="stylesheet" href="pages.css?v=hv-2" />
 </head>
 <body class="landing-body">
-  <div class="landing-page">
-    <header class="landing-nav">
-      <a class="landing-brand" href="index.html" aria-label="VULCANEOS beranda"><span class="landing-brand-mark"><img src="volcanoes-transparent.png" alt="" /></span><span><strong>VULCANEOS</strong><small>VOLCANIC &amp; OCEAN INTELLIGENCE</small></span></a>
-      <nav class="landing-links" aria-label="Navigasi utama">
-        <a href="peta.html">Peta</a><a href="index.html#tentang">Tentang</a><a href="latar-belakang.html">Latar belakang</a><a href="tujuan.html" aria-current="page">Tujuan</a><a href="index.html#data-terpantau">Data terpantau</a><a href="index.html#metode">Metodologi</a><a href="game.html">Game</a><a href="misi.html">Photobooth</a>
-      </nav>
-      <button class="landing-open" type="button" data-enter-webgis>Login Admin <i class="fa-solid fa-arrow-right-to-bracket" aria-hidden="true"></i></button>
-      <button class="landing-menu-toggle" type="button" aria-label="Buka navigasi" aria-expanded="false"><i class="fa-solid fa-bars"></i></button>
-    </header>
-    <main class="content-page purpose-page">
-      <div class="page-breadcrumb"><a href="index.html">Beranda</a><i class="fa-solid fa-angle-right"></i><span>Tujuan</span></div>
-      <section class="content-hero purpose-hero">
-        <div class="content-kicker"><span></span> ARAH PENGEMBANGAN <i></i> VULCANEOS</div>
+<div class="landing-page purpose-landing" id="purposePage">
+
+  <!-- NAV -->
+  <header class="landing-nav home-nav">
+    <a class="landing-brand" href="index.html" aria-label="VULCANEOS beranda">
+      <span class="landing-brand-mark"><img src="volcanoes-transparent.png" alt="" /></span>
+      <span><strong>VULCANEOS</strong><small>VOLCANIC &amp; OCEAN INTELLIGENCE</small></span>
+    </a>
+    <nav class="landing-links" aria-label="Navigasi utama">
+      <a href="peta.html">Peta</a>
+      <a href="index.html">Beranda</a>
+      <a href="latar-belakang.html">Latar belakang</a>
+      <a href="tujuan.html" aria-current="page">Tujuan</a>
+      <a href="game.html">Game</a>
+      <a href="misi.html">Photobooth</a>
+    </nav>
+    <button class="landing-open" type="button" data-enter-webgis>Login Admin <i class="fa-solid fa-arrow-right-to-bracket" aria-hidden="true"></i></button>
+    <button class="landing-menu-toggle" type="button" aria-label="Buka navigasi" aria-expanded="false"><i class="fa-solid fa-bars"></i></button>
+  </header>
+
+  <main class="tp-main">
+
+    <!-- ═══ HERO ═══ -->
+    <section class="tp-hero">
+      <div class="tp-hero-left" data-reveal>
+        <p class="tp-hero-eyebrow">ARAH PENGEMBANGAN &nbsp;·&nbsp; VULCANEOS</p>
         <h1>Empat cara membaca<br/><em>dinamika kawasan.</em></h1>
-        <p>VULCANEOS dirancang untuk membantu pengguna melihat perubahan Anak Krakatau secara terstruktur, lintas waktu, dan berbasis data geospasial.</p>
-      </section>
-      <section class="purpose-grid" aria-label="Tujuan VULCANEOS">
-        <article class="purpose-card"><div class="purpose-card-top"><span class="purpose-number">01</span><span class="purpose-icon"><i class="fa-solid fa-map-location-dot"></i></span></div><div class="purpose-card-copy"><span class="purpose-kicker">BENTUK &amp; LUAS</span><h2>Visualisasi<br/><em>Spasial</em></h2><p>Menyajikan informasi perubahan bentuk dan luas Pulau Anak Krakatau melalui peta interaktif.</p></div><div class="purpose-card-foot"><span>JELAJAHI RUANG</span><i class="fa-solid fa-arrow-up-right-from-square"></i></div></article>
-        <article class="purpose-card"><div class="purpose-card-top"><span class="purpose-number">02</span><span class="purpose-icon"><i class="fa-solid fa-clock-rotate-left"></i></span></div><div class="purpose-card-copy"><span class="purpose-kicker">PERUBAHAN LINTAS WAKTU</span><h2>Analisis<br/><em>Temporal</em></h2><p>Mengidentifikasi dinamika perubahan lingkungan berdasarkan data tahun 2017, 2019, 2021, 2023, dan 2025.</p></div><div class="purpose-card-foot"><span>BANDINGKAN PERIODE</span><i class="fa-solid fa-arrow-up-right-from-square"></i></div></article>
-        <article class="purpose-card"><div class="purpose-card-top"><span class="purpose-number">03</span><span class="purpose-icon"><i class="fa-solid fa-water"></i></span></div><div class="purpose-card-copy"><span class="purpose-kicker">KONDISI PERAIRAN</span><h2>Analisis<br/><em>Oseanografi</em></h2><p>Menyajikan informasi parameter oseanografi untuk memahami dinamika kondisi perairan sekitar pulau.</p></div><div class="purpose-card-foot"><span>AMATI PARAMETER</span><i class="fa-solid fa-arrow-up-right-from-square"></i></div></article>
-        <article class="purpose-card"><div class="purpose-card-top"><span class="purpose-number">04</span><span class="purpose-icon"><i class="fa-solid fa-layer-group"></i></span></div><div class="purpose-card-copy"><span class="purpose-kicker">SATU RUANG KERJA</span><h2>Integrasi<br/><em>Geospasial</em></h2><p>Mengintegrasikan data spasial dan temporal ke dalam satu platform informasi geografis berbasis web.</p></div><div class="purpose-card-foot"><span>PADUKAN INFORMASI</span><i class="fa-solid fa-arrow-up-right-from-square"></i></div></article>
-      </section>
-      <section class="purpose-note"><span class="purpose-note-icon"><i class="fa-solid fa-crosshairs"></i></span><p>Keempat tujuan ini bertemu dalam satu ruang eksplorasi untuk memahami perubahan lingkungan Pulau Anak Krakatau.</p><a class="landing-primary" href="peta.html">Buka peta <i class="fa-solid fa-arrow-right"></i></a></section>
-    </main>
-    <footer class="landing-footer"><a class="landing-brand" href="index.html"><span class="landing-brand-mark"><img src="volcanoes-transparent.png" alt="" /></span><span><strong>VULCANEOS</strong><small>VOLCANIC &amp; OCEAN INTELLIGENCE</small></span></a><span>Portal pemantauan lingkungan pesisir &middot; Selat Sunda</span><span>WEBGIS / 01.0</span></footer>
-  </div>
-  <script src="landing.js"></script>
+        <p class="tp-hero-desc">VULCANEOS dirancang untuk membantu pengguna melihat perubahan Anak Krakatau secara terstruktur, lintas waktu, dan berbasis data geospasial.</p>
+        <div class="tp-hero-pills">
+          <span>Visualisasi Spasial</span>
+          <span>Analisis Temporal</span>
+          <span>Oseanografi</span>
+          <span>Integrasi Data</span>
+        </div>
+      </div>
+      <div class="tp-hero-right" data-reveal>
+        <div class="tp-scope-card">
+          <span class="tp-scope-label">RUANG LINGKUP</span>
+          <div class="tp-scope-row">
+            <div class="tp-scope-icon"><i class="fa-solid fa-calendar-days"></i></div>
+            <div><b>2017 — 2025</b><small>Periode pengamatan</small></div>
+          </div>
+          <div class="tp-scope-row">
+            <div class="tp-scope-icon"><i class="fa-solid fa-layer-group"></i></div>
+            <div><b>Spasial-temporal</b><small>Data dan peta terpadu</small></div>
+          </div>
+          <div class="tp-scope-row">
+            <div class="tp-scope-icon"><i class="fa-solid fa-earth-asia"></i></div>
+            <div><b>Anak Krakatau</b><small>Fokus kawasan studi</small></div>
+          </div>
+          <div class="tp-scope-row">
+            <div class="tp-scope-icon"><i class="fa-solid fa-chart-line"></i></div>
+            <div><b>4 Tujuan Utama</b><small>Kerangka pengembangan</small></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ OVERVIEW STRIP ═══ -->
+    <div class="tp-overview-strip" data-reveal>
+      <article class="tp-overview-copy">
+        <span class="tp-eyebrow">TENTANG TUJUAN PLATFORM</span>
+        <h2>Satu kawasan,<br/><em>empat sudut pandang.</em></h2>
+        <p>Tujuan VULCANEOS menyatukan visualisasi spasial, analisis temporal, parameter oseanografi, dan integrasi data dalam satu WebGIS yang mudah dieksplorasi.</p>
+        <p>Setiap bagian dirancang agar pengguna dapat memahami perubahan kawasan dengan konteks lokasi dan waktu yang presisi.</p>
+      </article>
+      <div class="tp-overview-stats">
+        <div class="tp-ostat">
+          <strong>4</strong>
+          <span>TUJUAN UTAMA</span>
+        </div>
+        <div class="tp-ostat">
+          <strong>9</strong>
+          <span>TAHUN DATA</span>
+        </div>
+        <div class="tp-ostat">
+          <strong>3</strong>
+          <span>PARAM. OSEANOGRAFI</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ PURPOSE GRID ═══ -->
+    <section class="tp-catalog">
+      <div class="tp-catalog-head" data-reveal>
+        <div>
+          <span class="tp-eyebrow">TUJUAN UTAMA</span>
+          <h2>Empat fokus<br/><em>pengembangan.</em></h2>
+        </div>
+        <p>Telusuri peran setiap tujuan dalam membaca dinamika kawasan secara menyeluruh.</p>
+      </div>
+
+      <div class="tp-grid">
+
+        <article class="tp-card tp-card--map" data-reveal>
+          <div class="tp-card-bg-art"></div>
+          <div class="tp-card-inner">
+            <div class="tp-card-head">
+              <span class="tp-card-num">01</span>
+              <span class="tp-card-icon"><i class="fa-solid fa-map-location-dot"></i></span>
+            </div>
+            <div class="tp-card-body">
+              <span class="tp-card-kicker">BENTUK &amp; LUAS</span>
+              <h3>Visualisasi<br/><em>Spasial</em></h3>
+              <p>Menyajikan informasi perubahan bentuk dan luas Pulau Anak Krakatau melalui peta interaktif berbasis GIS.</p>
+            </div>
+            <div class="tp-card-foot">
+              <span>JELAJAHI RUANG</span>
+              <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            </div>
+          </div>
+        </article>
+
+        <article class="tp-card tp-card--time" data-reveal>
+          <div class="tp-card-bg-art"></div>
+          <div class="tp-card-inner">
+            <div class="tp-card-head">
+              <span class="tp-card-num">02</span>
+              <span class="tp-card-icon"><i class="fa-solid fa-clock-rotate-left"></i></span>
+            </div>
+            <div class="tp-card-body">
+              <span class="tp-card-kicker">PERUBAHAN LINTAS WAKTU</span>
+              <h3>Analisis<br/><em>Temporal</em></h3>
+              <p>Mengidentifikasi dinamika perubahan lingkungan berdasarkan data tahun 2017, 2019, 2021, 2023, dan 2025.</p>
+            </div>
+            <div class="tp-card-foot">
+              <span>BANDINGKAN PERIODE</span>
+              <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            </div>
+          </div>
+        </article>
+
+        <article class="tp-card tp-card--ocean" data-reveal>
+          <div class="tp-card-bg-art"></div>
+          <div class="tp-card-inner">
+            <div class="tp-card-head">
+              <span class="tp-card-num">03</span>
+              <span class="tp-card-icon"><i class="fa-solid fa-water"></i></span>
+            </div>
+            <div class="tp-card-body">
+              <span class="tp-card-kicker">KONDISI PERAIRAN</span>
+              <h3>Analisis<br/><em>Oseanografi</em></h3>
+              <p>Menyajikan informasi parameter oseanografi untuk memahami dinamika kondisi perairan sekitar pulau.</p>
+            </div>
+            <div class="tp-card-foot">
+              <span>AMATI PARAMETER</span>
+              <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            </div>
+          </div>
+        </article>
+
+        <article class="tp-card tp-card--geo" data-reveal>
+          <div class="tp-card-bg-art"></div>
+          <div class="tp-card-inner">
+            <div class="tp-card-head">
+              <span class="tp-card-num">04</span>
+              <span class="tp-card-icon"><i class="fa-solid fa-layer-group"></i></span>
+            </div>
+            <div class="tp-card-body">
+              <span class="tp-card-kicker">SATU RUANG KERJA</span>
+              <h3>Integrasi<br/><em>Geospasial</em></h3>
+              <p>Mengintegrasikan data spasial dan temporal ke dalam satu platform informasi geografis berbasis web.</p>
+            </div>
+            <div class="tp-card-foot">
+              <span>PADUKAN INFORMASI</span>
+              <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ═══ FEATURE SPLIT ═══ -->
+    <section class="tp-feature" data-reveal>
+      <div class="tp-feature-image">
+        <img src="krakatau.jpg" alt="Visualisasi kawasan Anak Krakatau" />
+        <div class="tp-feature-overlay">
+          <div class="tp-feature-badge">
+            <i class="fa-solid fa-globe"></i>
+            <span>WebGIS Interaktif</span>
+          </div>
+        </div>
+      </div>
+      <div class="tp-feature-copy">
+        <span class="tp-eyebrow">PLATFORM TERPADU</span>
+        <h2>Satu platform,<br/><em>semua data.</em></h2>
+        <p>VULCANEOS hadir sebagai jembatan antara data ilmiah yang kompleks dengan tampilan yang mudah dijelajahi, sehingga siapapun dapat memahami dinamika kawasan Anak Krakatau.</p>
+        <ul class="tp-feature-list">
+          <li><i class="fa-solid fa-check"></i> Peta interaktif berbasis Leaflet.js</li>
+          <li><i class="fa-solid fa-check"></i> Layer temporal 2017–2025</li>
+          <li><i class="fa-solid fa-check"></i> Parameter SST, Klorofil-a, dan TSS</li>
+          <li><i class="fa-solid fa-check"></i> Analisis garis pantai dan morfologi</li>
+        </ul>
+        <a href="peta.html" class="tp-feature-btn">Buka Peta <i class="fa-solid fa-arrow-right"></i></a>
+      </div>
+    </section>
+
+    <!-- ═══ CTA ═══ -->
+    <section class="tp-cta">
+      <div class="tp-cta-inner">
+        <div class="tp-cta-copy">
+          <span class="tp-eyebrow tp-eyebrow--light">MULAI EKSPLORASI</span>
+          <h2>Siap menjelajahi<br/><em>Anak Krakatau?</em></h2>
+          <p>Gunakan peta interaktif untuk menelusuri data perubahan lingkungan secara langsung.</p>
+        </div>
+        <div class="tp-cta-actions">
+          <a href="peta.html" class="tp-cta-primary">Buka peta <i class="fa-solid fa-arrow-right"></i></a>
+          <a href="latar-belakang.html" class="tp-cta-secondary"><i class="fa-solid fa-arrow-left"></i> Latar belakang</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="landing-footer home-footer">
+    <a class="landing-brand" href="index.html">
+      <span class="landing-brand-mark"><img src="volcanoes-transparent.png" alt="" /></span>
+      <span><strong>VULCANEOS</strong><small>VOLCANIC &amp; OCEAN INTELLIGENCE</small></span>
+    </a>
+    <span>Portal pemantauan lingkungan pesisir · Selat Sunda</span>
+    <span>WEBGIS / 01.0</span>
+  </footer>
+
+</div>
+<script src="landing.js"></script>
 </body>
 </html>
-
