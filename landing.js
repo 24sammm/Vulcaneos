@@ -21,7 +21,7 @@ document.querySelectorAll('[data-enter-webgis]').forEach((button) => {
 });
 
 const revealTargets = document.querySelectorAll(
-  '.landing-copy, .landing-visual, .editorial-heading, .landing-about article, .landing-background article, .content-hero, .story-aside, .story-copy, .purpose-card, .purpose-note, .page-cta, .section-intro, .data-item, .data-footnote, .landing-method > div, .landing-method > p, .landing-text-link',
+  '.landing-copy, .landing-visual, .editorial-heading, .landing-about article, .landing-background article, .content-hero, .story-aside, .story-copy, .purpose-card, .purpose-note, .page-cta, .section-intro, .data-item, .data-footnote, .landing-method > div, .landing-method > p, .landing-text-link, .home-landing [data-reveal], [data-reveal]',
 );
 revealTargets.forEach((element) => element.setAttribute('data-reveal', ''));
 
