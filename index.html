@@ -4,71 +4,285 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#f4f3ee" />
-  <meta name="description" content="Tentang VULCANEOS, data yang terhubung, dan ruang kerja geospasial Anak Krakatau." />
-  <title>VULCANEOS · Tentang Kawasan</title>
+  <meta name="description" content="Beranda VULCANEOS, WebGIS pemantauan lingkungan dan dinamika pesisir Anak Krakatau." />
+  <title>VULCANEOS · Beranda</title>
   <link rel="icon" type="image/png" sizes="32x32" href="volcanoes-favicon-32.png?v=2" />
   <link rel="icon" type="image/png" sizes="512x512" href="volcanoes-favicon.png?v=2" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="landing-v2.css" />
+  <link rel="stylesheet" href="style.css?v=remove-marker-1" />
+  <link rel="stylesheet" href="landing-v2.css?v=home-layout-3" />
   <link rel="stylesheet" href="logo.css" />
-  <link rel="stylesheet" href="public-map.css?v=krakatau-hero-1" />
+  <link rel="stylesheet" href="pages.css?v=hv-5" />
 </head>
 <body class="landing-body">
-  <section class="landing-page about-page" id="landingPage">
-    <header class="landing-nav">
-      <a class="landing-brand" href="index.html" aria-label="VULCANEOS beranda">
-        <span class="landing-brand-mark"><img src="volcanoes-transparent.png" alt="" /></span>
-        <span><strong>VULCANEOS</strong><small>VOLCANIC &amp; OCEAN INTELLIGENCE</small></span>
-      </a>
-      <nav class="landing-links" aria-label="Navigasi utama">
-        <a href="peta.html">Peta</a>
-        <a href="#tentang" aria-current="page">Tentang</a>
-        <a href="latar-belakang.html">Latar belakang</a>
-        <a href="tujuan.html">Tujuan</a>
-        <a href="#data-terpantau">Data terpantau</a>
-        <a href="#metode">Metodologi</a>
-        <a href="game.html">Game</a>
-        <a href="misi.html">Photobooth</a>
-      </nav>
-      <button class="landing-open" type="button" data-enter-webgis>Login Admin <i class="fa-solid fa-arrow-right-to-bracket" aria-hidden="true"></i></button>
-      <button class="landing-menu-toggle" type="button" aria-label="Buka navigasi" aria-expanded="false"><i class="fa-solid fa-bars"></i></button>
-    </header>
-    <main>
-      <section class="about-hero" aria-label="VULCANEOS — WebGIS Anak Krakatau">
-        <div class="about-hero-copy"><span>SELAT SUNDA · INDONESIA</span><h1>VULCANEOS</h1><p>WebGIS pemantauan lingkungan<br />Anak Krakatau.</p></div>
-        <a class="about-hero-scroll" href="#tentang" aria-label="Lanjut ke Tentang VULCANEOS"><span>JELAJAHI PLATFORM</span><i class="fa-solid fa-arrow-down"></i></a>
-      </section>
-      <section class="landing-about" id="tentang">
-        <div class="editorial-grid">
-          <header class="editorial-heading"><span class="landing-eyebrow">TENTANG PLATFORM</span><h1>Tentang<br/><em>VULCANEOS.</em></h1><p>Memahami perubahan lingkungan Pulau Anak Krakatau melalui data geospasial.</p><span class="editorial-index">01 <i></i> ABOUT WEB</span></header>
-          <article class="editorial-copy">
-            <p>VULCANEOS merupakan platform WebGIS berbasis web yang dikembangkan untuk menyajikan informasi dan visualisasi perubahan lingkungan Pulau Anak Krakatau pascaerupsi melalui pendekatan analisis spasial-temporal dan pemodelan geospasial.</p>
-            <p>Platform ini mengintegrasikan informasi geospasial berupa perubahan bentuk dan luas wilayah pulau serta parameter oseanografi dalam rentang waktu 2017, 2019, 2021, 2023, dan 2025. Informasi tersebut disajikan melalui peta interaktif dan visualisasi perbandingan kondisi sebelum dan sesudah perubahan lingkungan.</p>
-            <p>Dengan adanya VULCANEOS, pengguna dapat mengeksplorasi dinamika perubahan wilayah secara lebih mudah, sistematis, dan informatif. Platform ini diharapkan dapat menjadi media pendukung dalam memahami fenomena perubahan lingkungan pesisir dan kepulauan akibat aktivitas vulkanik serta proses oseanografi.</p>
-          </article>
+<div class="landing-page home-landing" id="landingPage">
+
+  <!-- ═══ NAV ═══ -->
+  <header class="landing-nav home-nav">
+    <a class="landing-brand" href="index.html" aria-label="VULCANEOS beranda">
+      <span class="landing-brand-mark"><img src="volcanoes-transparent.png" alt="" /></span>
+      <span><strong>VULCANEOS</strong><small>VOLCANIC &amp; OCEAN INTELLIGENCE</small></span>
+    </a>
+    <nav class="landing-links" aria-label="Navigasi utama">
+      <a href="peta.html">Peta</a>
+      <a href="index.html" aria-current="page">Beranda</a>
+      <a href="latar-belakang.html">Latar belakang</a>
+      <a href="tujuan.html">Tujuan</a>
+      <a href="game.html">Game</a>
+      <a href="misi.html">Photobooth</a>
+    </nav>
+    <button class="landing-open" type="button" data-enter-webgis>Login Admin <i class="fa-solid fa-arrow-right-to-bracket" aria-hidden="true"></i></button>
+    <button class="landing-menu-toggle" type="button" aria-label="Buka navigasi" aria-expanded="false"><i class="fa-solid fa-bars"></i></button>
+  </header>
+
+  <main class="hm-main">
+
+    <!-- ═══════════════════════════════
+         1. HERO
+    ════════════════════════════════════ -->
+    <section class="hm-hero" aria-label="VULCANEOS, pemantauan Anak Krakatau">
+      <div class="hm-hero-media">
+        <img class="hm-hero-img" src="krakatau.jpg" alt="Lanskap Anak Krakatau dan perairan Selat Sunda" />
+        <div class="hm-hero-veil"></div>
+      </div>
+
+      <div class="hm-hero-frame">
+        <div class="hm-hero-top">
+          <span class="hm-chip"><i></i> SELAT SUNDA · INDONESIA</span>
+          <span class="hm-coords">6° 06′ S &nbsp;·&nbsp; 105° 25′ E</span>
         </div>
-      </section>
-      <section class="landing-data" id="data-terpantau">
-        <div class="section-intro"><span class="landing-eyebrow">DATA YANG TERHUBUNG</span><h2>Satu kawasan,<br/><em>berbagai indikator.</em></h2></div>
-        <div class="data-list">
-          <article class="data-item"><span class="data-index">01</span><div class="data-icon"><i class="fa-solid fa-temperature-half"></i></div><div><h3>Suhu permukaan laut</h3><p>SST &middot; peta temporal</p></div><span class="data-years">2017 / 2019 / 2023 / 2025</span><i class="fa-solid fa-arrow-up-right-from-square data-arrow"></i></article>
-          <article class="data-item"><span class="data-index">02</span><div class="data-icon"><i class="fa-solid fa-leaf"></i></div><div><h3>Klorofil-a</h3><p>CHL &middot; peta temporal</p></div><span class="data-years">2017 / 2019 / 2023 / 2025</span><i class="fa-solid fa-arrow-up-right-from-square data-arrow"></i></article>
-          <article class="data-item"><span class="data-index">03</span><div class="data-icon"><i class="fa-solid fa-water"></i></div><div><h3>Padatan tersuspensi</h3><p>TSS &middot; peta temporal</p></div><span class="data-years">2017 / 2019 / 2023 / 2025</span><i class="fa-solid fa-arrow-up-right-from-square data-arrow"></i></article>
+
+        <div class="hm-hero-copy" data-reveal>
+          <span class="hm-hero-eyebrow">VOLCANIC &amp; OCEAN INTELLIGENCE</span>
+          <h1 class="hm-hero-title">VULCANEOS</h1>
+          <p class="hm-hero-sub">WebGIS pemantauan lingkungan dan dinamika pesisir Anak Krakatau.</p>
+          <div class="hm-hero-actions">
+            <a href="peta.html" class="hm-hero-btn">Jelajahi peta <i class="fa-solid fa-arrow-right"></i></a>
+            <a href="latar-belakang.html" class="hm-hero-ghost">Kenali latar belakang <i class="fa-solid fa-arrow-right"></i></a>
+          </div>
         </div>
-        <div class="data-footnote"><i class="fa-solid fa-circle-info"></i> Satuan dan klasifikasi mengikuti metadata pada masing-masing dataset.</div>
-      </section>
-      <section class="landing-method" id="metode">
-        <div><span class="landing-eyebrow">RUANG KERJA GEOSPASIAL</span><h2>Dari citra ke<br/><em>konteks pesisir.</em></h2></div>
-        <p>Bandingkan periode pengamatan, aktifkan parameter yang relevan, lalu telusuri nilainya langsung pada peta. Tampilan 3D membantu memberi konteks bentuk lahan di sekitar gunung api dan garis pantai.</p>
-        <a class="landing-text-link" href="peta.html">Jelajahi peta <i class="fa-solid fa-arrow-right"></i></a>
-      </section>
-    </main>
-    <footer class="landing-footer"><a class="landing-brand" href="index.html"><span class="landing-brand-mark"><img src="volcanoes-transparent.png" alt="" /></span><span><strong>VULCANEOS</strong><small>VOLCANIC &amp; OCEAN INTELLIGENCE</small></span></a><span>Portal pemantauan lingkungan pesisir &middot; Selat Sunda</span><span>WEBGIS / 01.0</span></footer>
-  </section>
-  <script src="landing.js"></script>
+
+        <div class="hm-hero-caption">
+          <span>01 / 04</span>
+          <span class="hm-caption-line"></span>
+          <span>ANAK KRAKATAU · SELAT SUNDA</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════
+         2. STAT STRIP
+    ════════════════════════════════════ -->
+    <div class="hm-statstrip" data-reveal>
+      <div class="hm-stat">
+        <strong>2017—2025</strong>
+        <span>RENTANG PENGAMATAN</span>
+      </div>
+      <div class="hm-stat-divider"></div>
+      <div class="hm-stat">
+        <strong>3</strong>
+        <span>PARAMETER PERAIRAN</span>
+      </div>
+      <div class="hm-stat-divider"></div>
+      <div class="hm-stat">
+        <strong>3D</strong>
+        <span>EKSPLORASI SPASIAL</span>
+      </div>
+      <div class="hm-stat-divider"></div>
+      <div class="hm-stat">
+        <strong>Dec 2018</strong>
+        <span>ERUPSI BESAR</span>
+      </div>
+      <div class="hm-stat-divider"></div>
+      <div class="hm-stat">
+        <strong>WebGIS</strong>
+        <span>PLATFORM GEOSPASIAL</span>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════
+         3. ABOUT & PARAMETERS
+    ════════════════════════════════════ -->
+    <section class="hm-about" id="tentang">
+      <article class="hm-about-copy" data-reveal>
+        <span class="hm-eyebrow"><i></i> TENTANG WEB</span>
+        <h2>Memahami perubahan<br /><em>lingkungan pesisir.</em></h2>
+        <p>VULCANEOS menyajikan visualisasi perubahan lingkungan Pulau Anak Krakatau melalui analisis spasial-temporal dan pemodelan geospasial.</p>
+        <p>Jelajahi perubahan morfologi dan garis pantai serta parameter oseanografi dalam satu ruang informasi yang mudah ditelusuri.</p>
+        <a class="hm-text-link" href="latar-belakang.html">Kenali latar belakang <i class="fa-solid fa-arrow-right"></i></a>
+
+        <div class="hm-facts">
+          <div class="hm-fact">
+            <strong>2017—2025</strong>
+            <span>RENTANG DATA</span>
+          </div>
+          <div class="hm-fact">
+            <strong>3</strong>
+            <span>PARAMETER LAUT</span>
+          </div>
+          <div class="hm-fact">
+            <strong>3D</strong>
+            <span>EKSPLORASI SPASIAL</span>
+          </div>
+        </div>
+      </article>
+
+      <aside class="hm-param-panel" aria-labelledby="paramTitle" data-reveal>
+        <div class="hm-param-heading">
+          <div>
+            <span class="hm-eyebrow"><i></i> DATA YANG TERHUBUNG</span>
+            <h2 id="paramTitle">Parameter</h2>
+          </div>
+          <a class="hm-param-open" href="peta.html" aria-label="Buka peta">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+          </a>
+        </div>
+
+        <a href="peta.html" class="hm-param-card">
+          <span class="hm-param-icon hm-param-sst"><i class="fa-solid fa-temperature-half"></i></span>
+          <span class="hm-param-copy">
+            <b>Suhu permukaan laut</b>
+            <small>SST · parameter oseanografi</small>
+            <span>Layer tersedia untuk 2017, 2019, 2023, dan 2025.</span>
+          </span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </a>
+
+        <a href="peta.html" class="hm-param-card">
+          <span class="hm-param-icon hm-param-chl"><i class="fa-solid fa-leaf"></i></span>
+          <span class="hm-param-copy">
+            <b>Klorofil-a</b>
+            <small>CHL · parameter oseanografi</small>
+            <span>Layer tersedia untuk 2017, 2019, 2023, dan 2025.</span>
+          </span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </a>
+
+        <a href="peta.html" class="hm-param-card">
+          <span class="hm-param-icon hm-param-tss"><i class="fa-solid fa-water"></i></span>
+          <span class="hm-param-copy">
+            <b>Total padatan tersuspensi</b>
+            <small>TSS · parameter oseanografi</small>
+            <span>Layer tersedia untuk 2017, 2019, 2023, dan 2025.</span>
+          </span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </a>
+
+        <p class="hm-param-note">
+          <i class="fa-solid fa-circle-info"></i> Data ditampilkan menurut tahun dan klasifikasi dataset.
+        </p>
+      </aside>
+    </section>
+
+    <!-- ═══════════════════════════════
+         4. NEWS / SOROTAN
+    ════════════════════════════════════ -->
+    <section class="hm-news" id="wawasan">
+      <div class="hm-news-head" data-reveal>
+        <div>
+          <span class="hm-eyebrow"><i></i> BERITA &amp; WAWASAN</span>
+          <h2>Sorotan kawasan.</h2>
+        </div>
+        <a href="latar-belakang.html" class="hm-text-link">Lihat semua <i class="fa-solid fa-arrow-right"></i></a>
+      </div>
+
+      <div class="hm-news-grid">
+        <a class="hm-news-card" href="https://www.esdm.go.id/id/media-center/arsip-berita/erupsi-menerus-anak-krakatau-berakhir-aktivitas-gunung-api-kembali-menurun-dan-tetap-dipantau" target="_blank" rel="noopener noreferrer" data-reveal>
+          <div class="hm-news-art">
+            <img src="https://www.esdm.go.id/assets/imagecache/bodyView/arsip-berita-erupsi-menerus-anak-krakatau-berakhir-aktivitas-gunung-api-kembali-menurun-dan-tetap-dipantau-7vsh9uq.jpeg" alt="Gunung Anak Krakatau setelah erupsi" />
+            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+          </div>
+          <div class="hm-news-copy">
+            <h3>Erupsi Menerus Anak Krakatau Berakhir, Aktivitas Gunung Api Kembali Menurun dan Tetap Dipantau</h3>
+            <p>Aktivitas Gunung Anak Krakatau kembali menurun setelah erupsi menerus berakhir.</p>
+            <span class="hm-news-more">Baca berita <i class="fa-solid fa-arrow-right"></i></span>
+          </div>
+        </a>
+
+        <a class="hm-news-card" href="https://www.bnpb.go.id/berita/update-aktivitas-gunung-anak-krakatau-status-level-iii-masih-berlaku" target="_blank" rel="noopener noreferrer" data-reveal>
+          <div class="hm-news-art">
+            <img src="https://www.bnpb.go.id/storage/app/media/01%20SIARAN%20PERS%202026/675%20Update%20Aktivitas%20Gunung%20Anak%20Krakatau%20Status%20Level%20III%20Masih%20Berlaku/WhatsApp%20Image%202026-09-11%20at%2014.02.13.jpeg" alt="Aktivitas Gunung Anak Krakatau" />
+            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+          </div>
+          <div class="hm-news-copy">
+            <h3>Update Aktivitas Gunung Anak Krakatau, Status Level III Masih Berlaku</h3>
+            <p>Status aktivitas Gunung Anak Krakatau masih berada pada Level III dan terus dipantau.</p>
+            <span class="hm-news-more">Baca berita <i class="fa-solid fa-arrow-right"></i></span>
+          </div>
+        </a>
+
+        <a class="hm-news-card" href="https://darilaut.id/berita/tubuh-gunung-anak-krakatau-berubah-drastis-setelah-runtuh-2018/amp" target="_blank" rel="noopener noreferrer" data-reveal>
+          <div class="hm-news-art">
+            <img src="https://darilaut.id/wp-content/uploads/2026/09/GAK-BRIN-2.jpg" alt="Perubahan tubuh Gunung Anak Krakatau" />
+            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+          </div>
+          <div class="hm-news-copy">
+            <h3>Tubuh Gunung Anak Krakatau Berubah Drastis Setelah Runtuh 2018</h3>
+            <p>Perubahan tubuh gunung menjadi sorotan setelah peristiwa runtuh pada 2018.</p>
+            <span class="hm-news-more">Baca berita <i class="fa-solid fa-arrow-right"></i></span>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════
+         5. PROFILE KAWASAN
+    ════════════════════════════════════ -->
+    <section class="hm-profile" id="profil">
+      <div class="hm-profile-image" data-reveal>
+        <img src="petadasar1.jpg" alt="Profil lanskap Gunung Anak Krakatau" />
+        <span class="hm-profile-img-label"><i></i> AREA STUDI · SELAT SUNDA</span>
+        <span class="hm-profile-img-index">6° 06′ S / 105° 25′ E</span>
+      </div>
+
+      <article class="hm-profile-copy" data-reveal>
+        <span class="hm-eyebrow"><i></i> PROFIL GUNUNG ANAK KRAKATAU</span>
+        <h2>Sebuah pulau<br />yang terus <em>berubah.</em></h2>
+        <p>Terletak di Selat Sunda, Anak Krakatau berada dalam lingkungan kepulauan yang dibentuk oleh aktivitas vulkanik dan proses oseanografi yang aktif.</p>
+        <p>VULCANEOS mengajak pengguna melihat kawasan ini lewat konteks lokasi, perubahan morfologi, dinamika pesisir, dan kondisi perairannya dalam satu portal terpadu.</p>
+
+        <div class="hm-profile-stats">
+          <div><span>LOKASI</span><b>Selat Sunda</b></div>
+          <div><span>FOKUS</span><b>Pesisir &amp; perairan</b></div>
+          <div><span>PERIODE DATA</span><b>2017—2025</b></div>
+        </div>
+
+        <a class="hm-profile-button" href="peta.html">Jelajahi kawasan <i class="fa-solid fa-arrow-right"></i></a>
+      </article>
+    </section>
+
+    <!-- ═══════════════════════════════
+         6. CTA STRIP
+    ════════════════════════════════════ -->
+    <section class="hm-cta">
+      <div class="hm-cta-inner">
+        <div class="hm-cta-copy">
+          <span class="hm-eyebrow"><i></i> MULAI EKSPLORASI</span>
+          <h2>Lihat perubahan<br/><em>dari peta interaktif.</em></h2>
+        </div>
+        <div class="hm-cta-actions">
+          <a href="peta.html" class="hm-cta-primary">Buka peta <i class="fa-solid fa-arrow-right"></i></a>
+          <a href="latar-belakang.html" class="hm-cta-ghost">Latar belakang <i class="fa-solid fa-arrow-right"></i></a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ═══ FOOTER ═══ -->
+  <footer class="landing-footer home-footer">
+    <a class="landing-brand" href="index.html">
+      <span class="landing-brand-mark"><img src="volcanoes-transparent.png" alt="" /></span>
+      <span><strong>VULCANEOS</strong><small>VOLCANIC &amp; OCEAN INTELLIGENCE</small></span>
+    </a>
+    <span>Portal pemantauan lingkungan pesisir · Selat Sunda</span>
+    <span>WEBGIS / 01.0</span>
+  </footer>
+
+</div>
+<script src="landing.js"></script>
 </body>
 </html>
