@@ -6,7 +6,12 @@ module.exports = async (req, res) => {
   const origin = req.headers.origin;
   if (origin && new URL(origin).host !== req.headers.host) return json(res, 403, { error: 'Permintaan tidak diizinkan.' });
 
-  const body = req.body || {};
+  const rawBody = req.body;
+  const body = rawBody && typeof rawBody === 'object' && !Buffer.isBuffer(rawBody)
+    ? rawBody
+    : typeof rawBody === 'string' || Buffer.isBuffer(rawBody)
+      ? Object.fromEntries(new URLSearchParams(rawBody.toString()))
+      : {};
   if (body.website) return json(res, 200, { sent: true });
   let siteOrigin;
   try {
