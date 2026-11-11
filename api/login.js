@@ -8,7 +8,16 @@ module.exports = (req, res) => {
     const { username = '', password = '', remember = false } = req.body || {};
     const user = users().find((candidate) => safeEqual(username, candidate.id) && safeEqual(password, candidate.password));
     if (!user) return json(res, 401, { error: 'ID pengguna atau kata sandi tidak sesuai.' });
-    return json(res, 200, { authenticated: true, role: isAdmin(user.id) ? 'admin' : 'user' }, { 'Set-Cookie': createCookie(user.id, req, remember === true) });
+    const role = isAdmin(user.id) ? 'admin' : 'user';
+    const cookie = createCookie(user.id, req, remember === true);
+    if (req.headers.accept?.includes('text/html')) {
+      res.statusCode = 303;
+      res.setHeader('Location', role === 'admin' ? '/webgis.html' : '/peta.html');
+      res.setHeader('Set-Cookie', cookie);
+      res.setHeader('Cache-Control', 'no-store');
+      return res.end();
+    }
+    return json(res, 200, { authenticated: true, role }, { 'Set-Cookie': cookie });
   } catch (error) {
     console.error('Login API configuration error:', error.message);
     return json(res, 500, { error: 'Autentikasi belum dikonfigurasi dengan benar.' });
