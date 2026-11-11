@@ -29,7 +29,7 @@
         <span class="auth-kicker auth-kicker-light">PERMOHONAN AKSES</span>
         <h2>Ajukan akses.</h2>
         <p class="auth-intro">Kirim detail permohonan akses. Admin akan meninjau sebelum menambahkan akun.</p>
-        <form class="auth-form" id="accessRequestForm" autocomplete="on">
+        <form class="auth-form" id="accessRequestForm" method="post" action="/api/access-request" autocomplete="on">
           <label for="registerName">Nama lengkap</label>
           <div class="auth-input-wrap"><i class="fa-regular fa-id-card"></i><input id="registerName" name="name" type="text" placeholder="Nama sesuai identitas" autocomplete="name" maxlength="120" required /></div>
           <label for="registerInstitution">Instansi</label>
@@ -49,6 +49,6 @@
       <footer class="auth-footer"><span>© KRAKATAU WATCH</span><span>AKSES AKUN</span><span>v1.0</span></footer>
     </section>
   </main>
-  <script src="auth.js?v=access-request-status-1"></script>
+  <script src="auth-client.js?v=access-request-status-2"></script>
 </body>
 </html>
