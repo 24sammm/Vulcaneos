@@ -67,22 +67,53 @@ if (accessRequestForm) {
     status.textContent = 'Mengirim permohonan…';
     submit.disabled = true;
     try {
-      const response = await fetch('/api/access-request', {
+      const configResponse = await fetch('/api/access-request', { credentials: 'same-origin' });
+      const configText = await configResponse.text();
+      let config;
+      try { config = configText ? JSON.parse(configText) : {}; }
+      catch { throw new Error('Konfigurasi permohonan akses tidak valid.'); }
+      if (!configResponse.ok) throw new Error(config.error || 'Konfigurasi tujuan email tidak tersedia.');
+      if (!config.endpoint) throw new Error('Konfigurasi tujuan email tidak tersedia.');
+
+      const formData = Object.fromEntries(new FormData(accessRequestForm).entries());
+      if (formData.website) {
+        accessRequestForm.reset();
+        status.textContent = 'Permohonan berhasil dikirim ke layanan email untuk diteruskan ke admin.';
+        return;
+      }
+
+      const response = await fetch(config.endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin',
-        body: JSON.stringify(Object.fromEntries(new FormData(accessRequestForm).entries())),
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          _subject: `Permohonan akses VULCANEOS — ${formData.name}`,
+          _template: 'table',
+          _replyto: formData.email,
+          Nama: formData.name,
+          Instansi: formData.institution,
+          Email: formData.email,
+          'ID pengguna yang diajukan': formData.username,
+          'Keperluan akses': formData.reason,
+        }),
       });
       const responseText = await response.text();
       let result;
       try { result = responseText ? JSON.parse(responseText) : {}; }
-      catch { throw new Error('Endpoint permintaan akses tidak aktif. Jalankan dengan `npm start` atau `vercel dev`.'); }
+      catch {
+        const contentType = response.headers.get('content-type') || 'unknown';
+        throw new Error(`FormSubmit membalas non-JSON (HTTP ${response.status}; ${contentType}).`);
+      }
       if (!response.ok) throw new Error(result.error || 'Permintaan gagal dikirim.');
+      if (result.success !== true && result.success !== 'true') {
+        throw new Error(typeof result.message === 'string'
+          ? `FormSubmit menolak permohonan: ${result.message}`
+          : 'FormSubmit menolak permohonan. Email belum dikirim.');
+      }
       accessRequestForm.reset();
       status.textContent = 'Permohonan berhasil dikirim ke layanan email untuk diteruskan ke admin.';
     } catch (error) {
       status.textContent = error.message === 'Failed to fetch'
-        ? 'Server tidak dapat dihubungi. Jalankan dengan npm start atau vercel dev.'
+        ? 'Tidak dapat terhubung ke FormSubmit. Periksa koneksi, CORS, dan blokir browser.'
         : error.message;
     } finally {
       submit.disabled = false;
