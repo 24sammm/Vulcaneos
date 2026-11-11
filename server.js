@@ -50,7 +50,7 @@ if (!AUTH_USERS.length || !SESSION_SECRET || SESSION_SECRET.length < 32) {
 }
 
 const loginAttempts = new Map();
-const allowedRootFiles = new Set(['index.html', 'peta.html', 'tentang.html', 'login.html', 'register.html', 'webgis.html', 'misi.html', 'game.html', 'sumber.html', 'latar-belakang.html', 'tujuan.html', 'krakatau.jpg', 'krakatauanak.jpg', 'petadatar.jpg', 'petadasar1.jpg', 'backgroundphotobooth.jpg', 'style.css', 'landing-v2.css', 'pages.css', 'home-theme.css', 'public-map.css', 'public-map.js', 'download-modal.css', 'logo.css', 'volcanoes-transparent.png', 'volcanoes-favicon.png', 'volcanoes-favicon-32.png', 'photoboothtemp1.jpeg', 'photoboothtemp2.jpeg', 'app.js', 'auth.js', 'landing.js', 'photo-booth.css', 'photo-booth.js', 'game.css', 'game.js']);
+const allowedRootFiles = new Set(['index.html', 'peta.html', 'tentang.html', 'login.html', 'register.html', 'webgis.html', 'misi.html', 'game.html', 'sumber.html', 'latar-belakang.html', 'tujuan.html', 'krakatau.jpg', 'krakatauanak.jpg', 'petadatar.jpg', 'petadasar1.jpg', 'backgroundphotobooth.jpg', 'style.css', 'landing-v2.css', 'pages.css', 'home-theme.css', 'public-map.css', 'public-map.js', 'download-modal.css', 'logo.css', 'volcanoes-transparent.png', 'volcanoes-favicon.png', 'volcanoes-favicon-32.png', 'photoboothtemp1.jpeg', 'photoboothtemp2.jpeg', 'edukasi1.jpeg', 'edukasi2.jpeg', 'edukasi3.jpeg', 'pemetaanVulkanik.jpeg', 'app.js', 'auth.js', 'landing.js', 'photo-booth.css', 'photo-booth.js', 'game.css', 'game.js']);
 
 function jsonResponse(response, status, body, extraHeaders = {}) {
   response.writeHead(status, { 'Content-Type': MIME_TYPES['.json'], 'Cache-Control': 'no-store', ...extraHeaders });
