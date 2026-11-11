@@ -26,8 +26,26 @@ const parameterData = {
     years: { 2017: 'TSS17.json', 2019: 'TSS19.json', 2023: 'TSS23.json', 2025: 'TSS25.json' },
   },
 };
+const parameterReportClassRanges = {
+  sst: {
+    2017: [[15.285, 23.422], [23.423, 26.893], [26.894, 29.172], [29.173, 31.667], [31.668, 42.95]],
+    2019: [[28.441, 29.475], [29.476, 30.571], [30.572, 33.98], [33.981, 38.91], [38.911, 43.962]],
+    2023: [[20.111, 28.245], [28.246, 29.505], [29.506, 33.63], [33.631, 41.191], [41.192, 49.325]],
+  },
+  chlorophyll: {
+    2017: [[0.068, 0.157], [0.158, 0.222], [0.223, 0.3], [0.301, 1.166], [1.167, 3.365]],
+    2019: [[1.785, 1.839], [1.84, 2.005], [2.006, 2.67], [2.671, 5.05], [5.051, 8.841]],
+    2023: [[1.748, 1.917], [1.918, 2.087], [2.088, 2.573], [2.574, 4.371], [4.372, 7.942]],
+  },
+  tss: {
+    2017: [[0.935, 0.954], [0.955, 0.959], [0.96, 0.962], [0.963, 0.965], [0.966, 0.975]],
+    2019: [[0.718, 0.844], [0.845, 0.945], [0.946, 0.956], [0.957, 0.962], [0.963, 0.968]],
+    2023: [[0.063, 0.858], [0.859, 1.033], [1.034, 1.118], [1.119, 1.171], [1.172, 1.27]],
+  },
+};
 const selectedYears = { sst: 2017, chlorophyll: 2017, tss: 2017 };
 const loadedParameters = {};
+const reportLayerStats = {};
 const morphologyLoads = {};
 const loadedMorphologies = {};
 let selectedMorphologyYear = 2017;
@@ -64,6 +82,7 @@ async function addCesiumGeoJsonLayer(id, data, styleFeature, visible = true) {
       if (style.outlineWidth) entity.polygon.outlineWidth = style.outlineWidth;
       entity.polygon.classificationType = Cesium.ClassificationType.TERRAIN;
     }
+    if (entity.point && style.point) entity.point = style.point;
     if (entity.polyline) {
       if (style.stroke) entity.polyline.material = style.stroke;
       if (style.width) entity.polyline.width = style.width;
@@ -92,7 +111,7 @@ function setCesiumLayerVisibility(id, visible) {
 $$('.temporal-layer').forEach((group) => {
   const input = $('input[type="checkbox"]', group);
   const yearOptions = $('.year-options', group);
-  yearOptions.hidden = !input.checked;
+  if (yearOptions) yearOptions.hidden = !input.checked;
 });
 let selectedTheme = 'dark';
 try {
@@ -123,15 +142,261 @@ $$('[data-logout], #logoutButton').forEach((button) => button.addEventListener('
 
 const profileButton = $('#profileButton');
 const profileMenu = $('#profileMenu');
+let currentSession = null;
 fetch('/api/me', { credentials: 'same-origin' })
   .then((response) => response.ok ? response.json() : null)
   .then((session) => {
     if (!session?.authenticated || !session.profile) return;
+    currentSession = session;
     const { name, institution } = session.profile;
     $$('.profile-popover-name, .user b').forEach((element) => { element.textContent = name; });
     $$('.profile-popover small, .user small').forEach((element) => { element.textContent = institution; });
+    $('#adminReportTools').hidden = session.role !== 'admin';
   })
   .catch(() => {});
+
+function buildAdminReport() {
+  const generatedAt = new Date().toISOString();
+  const datasets = Object.entries(parameterData).flatMap(([series, config]) => (
+    Object.entries(config.years).map(([year, sourceFile]) => {
+      const layerId = parameterLayerId(series, year);
+      const loaded = loadedParameters[layerId];
+      const active = Boolean($(`[data-layer="${series}"]`)?.checked && String(selectedYears[series]) === String(year));
+      const classRanges = config.classRanges?.[year]
+        || parameterReportClassRanges[series]?.[year]?.map(([min, max], index) => ({ code: index + 1, min, max }))
+        || [];
+      return {
+        layerId,
+        name: config.label,
+        year,
+        sourceFile,
+        unit: config.unit || 'gridcode',
+        status: loaded ? 'loaded' : 'available',
+        active,
+        sourceFeatureCount: loaded?.sourceFeatureCount ?? loaded?.featureCount ?? null,
+        displayedFeatureCount: loaded?.featureCount ?? null,
+        minValue: loaded?.min ?? null,
+        maxValue: loaded?.max ?? null,
+        classRanges,
+      };
+    })
+  ));
+  datasets.push({
+    layerId: 'shoreline-epr',
+    name: 'Transek garis pantai',
+    year: '2017–2025',
+    sourceFile: 'GarisPantaifix_WGS84.geojson',
+    unit: 'EPR m/tahun; NSM m',
+    status: reportLayerStats['shoreline-epr'] ? 'loaded' : 'available',
+    active: Boolean($('[data-layer="shoreline-rates"]')?.checked),
+    sourceFeatureCount: reportLayerStats['shoreline-epr']?.featureCount ?? null,
+    displayedFeatureCount: reportLayerStats['shoreline-epr']?.featureCount ?? null,
+    minValue: null,
+    maxValue: null,
+  });
+  [2017, 2019, 2021, 2025].forEach((year) => {
+    const loaded = loadedMorphologies[year];
+    datasets.push({
+      layerId: `morphology-${year}`,
+      name: 'Morfologi Anak Krakatau',
+      year,
+      sourceFile: `Morfologi_Kelas_AnakKrakatau_${year}.geojson`,
+      unit: 'luas ha',
+      status: loaded ? 'loaded' : 'available',
+      active: Boolean($('[data-layer="morphology"]')?.checked && selectedMorphologyYear === year),
+      sourceFeatureCount: loaded?.featureCount ?? null,
+      displayedFeatureCount: loaded?.featureCount ?? null,
+      minValue: null,
+      maxValue: null,
+    });
+  });
+  ['normal', 'siaga', 'awas'].forEach((zone) => {
+    datasets.push({
+      layerId: `risk-${zone}`,
+      name: `Zona risiko ${zone} (simulasi)`,
+      year: 'simulasi',
+      sourceFile: null,
+      unit: 'km',
+      status: 'simulated',
+      active: Boolean($('[data-layer="risk"]')?.checked && riskBands[zone]),
+      sourceFeatureCount: null,
+      displayedFeatureCount: null,
+      minValue: null,
+      maxValue: null,
+    });
+  });
+  return {
+    report: 'VULCANEOS WebGIS data inventory',
+    generatedAt,
+    generatedBy: currentSession?.profile?.name || currentSession?.user || 'admin',
+    note: 'Jumlah fitur dan rentang gridcode diisi jika dataset telah dimuat pada sesi WebGIS ini. Rentang nilai per kelas dicantumkan jika tersedia.',
+    summary: {
+      datasetCount: datasets.length,
+      activeLayerCount: datasets.filter((dataset) => dataset.active).length,
+      loadedDatasetCount: datasets.filter((dataset) => dataset.status === 'loaded').length,
+    },
+    datasets,
+  };
+}
+
+function downloadReportFile(filename, content, mimeType) {
+  const url = URL.createObjectURL(new Blob([content], { type: mimeType }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.click();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+const reportExportModal = $('#reportExportModal');
+const reportDatasetList = $('#reportDatasetList');
+const reportSelectionCount = $('#reportSelectionCount');
+
+function selectedReportDatasetIds() {
+  return $$('input[name="reportDataset"]:checked', reportDatasetList).map((checkbox) => checkbox.value);
+}
+
+function updateReportSelectionCount() {
+  const count = selectedReportDatasetIds().length;
+  reportSelectionCount.textContent = `${count} dataset dipilih`;
+}
+
+function renderReportDatasetSelection() {
+  const datasets = buildAdminReport().datasets;
+  const defaultSelection = new Set(datasets.filter((dataset) => dataset.active).map((dataset) => dataset.layerId));
+  reportDatasetList.replaceChildren();
+  datasets.forEach((dataset) => {
+    const label = document.createElement('label');
+    label.className = 'report-dataset-option';
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.name = 'reportDataset';
+    checkbox.value = dataset.layerId;
+    checkbox.checked = defaultSelection.has(dataset.layerId);
+    checkbox.addEventListener('change', updateReportSelectionCount);
+    const detail = document.createElement('span');
+    detail.className = 'report-dataset-copy';
+    const name = document.createElement('b');
+    name.textContent = `${dataset.name} · ${dataset.year}`;
+    const metadata = document.createElement('small');
+    const state = dataset.status === 'loaded' ? 'Data dimuat' : dataset.status === 'simulated' ? 'Simulasi' : 'Belum dimuat';
+    metadata.textContent = `${dataset.sourceFile || 'Layer simulasi'} · ${state}${dataset.active ? ' · Aktif' : ''}`;
+    detail.append(name, metadata);
+    label.append(checkbox, detail);
+    reportDatasetList.append(label);
+  });
+  updateReportSelectionCount();
+}
+
+function openReportExport() {
+  if (currentSession?.role !== 'admin') {
+    toast('Ekspor laporan hanya tersedia untuk admin');
+    return;
+  }
+  renderReportDatasetSelection();
+  profileMenu.hidden = true;
+  profileButton?.setAttribute('aria-expanded', 'false');
+  reportExportModal.hidden = false;
+  reportExportModal.classList.add('open');
+  $('#reportExportClose').focus();
+}
+
+function closeReportExport() {
+  reportExportModal.classList.remove('open');
+  reportExportModal.hidden = true;
+  profileButton?.focus();
+}
+
+function exportAdminReport(format) {
+  if (currentSession?.role !== 'admin') {
+    toast('Ekspor laporan hanya tersedia untuk admin');
+    return;
+  }
+  const selectedIds = new Set(selectedReportDatasetIds());
+  if (!selectedIds.size) {
+    toast('Pilih setidaknya satu dataset untuk diekspor');
+    return;
+  }
+  const report = buildAdminReport();
+  report.datasets = report.datasets.filter((dataset) => selectedIds.has(dataset.layerId));
+  report.summary = {
+    datasetCount: report.datasets.length,
+    activeLayerCount: report.datasets.filter((dataset) => dataset.active).length,
+    loadedDatasetCount: report.datasets.filter((dataset) => dataset.status === 'loaded').length,
+  };
+  const date = new Date(report.generatedAt).toISOString().slice(0, 10);
+  const filenameBase = `vulcaneos-laporan-${report.datasets.length}-dataset-${date}`;
+  if (format === 'json') {
+    const readableReport = {
+      laporan: 'Inventaris data VULCANEOS WebGIS',
+      dibuatPada: report.generatedAt,
+      dibuatOleh: report.generatedBy,
+      ringkasan: {
+        jumlahDataset: report.summary.datasetCount,
+        jumlahLayerAktif: report.summary.activeLayerCount,
+        jumlahDatasetDimuat: report.summary.loadedDatasetCount,
+      },
+      dataset: report.datasets.map((dataset) => ({
+        idLayer: dataset.layerId,
+        namaDataset: dataset.name,
+        tahun: dataset.year,
+        fileSumber: dataset.sourceFile,
+        satuan: dataset.unit,
+        status: dataset.status === 'loaded' ? 'Data dimuat' : dataset.status === 'simulated' ? 'Simulasi' : 'Belum dimuat',
+        layerAktif: dataset.active,
+        jumlahFiturSumber: dataset.sourceFeatureCount,
+        jumlahFiturDitampilkan: dataset.displayedFeatureCount,
+        nilaiMinimumDataDimuat: dataset.minValue,
+        nilaiMaksimumDataDimuat: dataset.maxValue,
+        rentangKelas: (dataset.classRanges || []).map((range) => ({
+          kelas: range.code,
+          nilaiMinimum: range.min,
+          nilaiMaksimum: range.max,
+        })),
+      })),
+      catatan: report.note,
+    };
+    downloadReportFile(`${filenameBase}.json`, JSON.stringify(readableReport, null, 2), 'application/json;charset=utf-8');
+    closeReportExport();
+    return;
+  }
+  const columns = ['Waktu ekspor', 'Diekspor oleh', 'ID layer', 'Nama dataset', 'Tahun/periode', 'File sumber', 'Satuan / field nilai', 'Status data', 'Layer aktif', 'Jumlah fitur pada file', 'Jumlah fitur ditampilkan', 'Nilai minimum data dimuat', 'Nilai maksimum data dimuat', 'Rentang nilai kelas 1', 'Rentang nilai kelas 2', 'Rentang nilai kelas 3', 'Rentang nilai kelas 4', 'Rentang nilai kelas 5'];
+  const statusLabel = (status) => status === 'loaded' ? 'Data dimuat' : status === 'simulated' ? 'Simulasi' : 'Belum dimuat';
+  const formatRangeValue = (value) => Number(value).toLocaleString('id-ID', { maximumFractionDigits: 3 });
+  const escapeCsv = (value) => {
+    const text = String(value ?? '');
+    return /[;"\r\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
+  };
+  const rows = report.datasets.map((dataset) => [
+    report.generatedAt, report.generatedBy, dataset.layerId, dataset.name, dataset.year, dataset.sourceFile,
+    dataset.unit, statusLabel(dataset.status), dataset.active ? 'Ya' : 'Tidak', dataset.sourceFeatureCount, dataset.displayedFeatureCount,
+    dataset.minValue, dataset.maxValue,
+    ...Array.from({ length: 5 }, (_, index) => {
+      const range = dataset.classRanges?.[index];
+      return range ? `${formatRangeValue(range.min)}–${formatRangeValue(range.max)}` : '';
+    }),
+  ]);
+  const csv = `\uFEFF${[columns, ...rows].map((row) => row.map(escapeCsv).join(';')).join('\r\n')}`;
+  downloadReportFile(`${filenameBase}.csv`, csv, 'text/csv;charset=utf-8');
+  closeReportExport();
+}
+
+$('#openReportExport').addEventListener('click', openReportExport);
+$('#reportExportClose').addEventListener('click', closeReportExport);
+reportExportModal.addEventListener('click', (event) => {
+  if (event.target === reportExportModal) closeReportExport();
+});
+$('#reportSelectAll').addEventListener('click', () => {
+  $$('input[name="reportDataset"]', reportDatasetList).forEach((checkbox) => { checkbox.checked = true; });
+  updateReportSelectionCount();
+});
+$('#reportSelectNone').addEventListener('click', () => {
+  $$('input[name="reportDataset"]', reportDatasetList).forEach((checkbox) => { checkbox.checked = false; });
+  updateReportSelectionCount();
+});
+$('#reportExportCsv').addEventListener('click', () => exportAdminReport('csv'));
+$('#reportExportJson').addEventListener('click', () => exportAdminReport('json'));
+
 profileButton?.addEventListener('click', () => {
   const isOpen = profileMenu.hidden;
   profileMenu.hidden = !isOpen;
@@ -144,9 +409,11 @@ document.addEventListener('click', (event) => {
   }
 });
 
-function parameterStats(data) {
-  const values = data.features.map((feature) => Number(feature.properties?.gridcode)).filter(Number.isFinite);
-  if (!values.length) throw new Error('File tidak memiliki nilai gridcode.');
+function parameterStats(data, series) {
+  const config = parameterData[series];
+  const property = config?.valueProperty || 'gridcode';
+  const values = data.features.map((feature) => Number(feature.properties?.[property])).filter(Number.isFinite);
+  if (!values.length) throw new Error(`File tidak memiliki nilai ${property}.`);
   return {
     min: values.reduce((min, value) => Math.min(min, value), Infinity),
     max: values.reduce((max, value) => Math.max(max, value), -Infinity),
@@ -157,7 +424,7 @@ function renderParameterLegend(series, year, stats) {
   const config = parameterData[series];
   const physicalRange = config.physicalRanges?.[year];
   const classRanges = config.classRanges?.[year];
-  $('.sst-legend label').textContent = `${config.label} ${year} (${physicalRange ? '°C' : 'gridcode'})`;
+  $('.sst-legend label').textContent = `${config.label}${config.showYear === false ? '' : ` ${year}`} (${config.unit || 'gridcode'})`;
   const gradient = $('.sst-gradient');
   const ticksElement = $('.sst-ticks');
   let classLegend = $('.sst-class-legend');
@@ -169,12 +436,13 @@ function renderParameterLegend(series, year, stats) {
       classLegend.className = 'sst-class-legend';
       gradient.after(classLegend);
     }
-    classLegend.innerHTML = classRanges.map((range) => `<div><i style="--class-color:${config.classColors[range.code - 1]}"></i><span>Kelas ${range.code}</span><b>${range.min.toFixed(3).replace('.', ',')}–${range.max.toFixed(3).replace('.', ',')} °C</b></div>`).join('');
+    classLegend.innerHTML = classRanges.map((range) => `<div><i style="--class-color:${config.classColors[range.code - 1]}"></i><span>Kelas ${range.code}</span><b>${range.min.toFixed(3).replace('.', ',')}–${range.max.toFixed(3).replace('.', ',')} ${config.unit || ''}</b></div>`).join('');
   } else {
     gradient.hidden = false;
     ticksElement.hidden = false;
     if (classLegend) classLegend.remove();
-    const ticks = [stats.min, Number(((stats.min + stats.max) / 2).toPrecision(3)), stats.max];
+    const ticks = [stats.min, Number(((stats.min + stats.max) / 2).toPrecision(3)), stats.max]
+      .map((value) => config.unit ? value.toLocaleString('id-ID', { maximumFractionDigits: 2 }) : value);
     $$('.sst-ticks span').forEach((tick, index) => { tick.textContent = ticks[index]; });
     gradient.style.background = `linear-gradient(90deg, ${config.colors.join(', ')})`;
   }
@@ -221,25 +489,37 @@ async function ensureParameterLayer(series, year) {
     let response;
     response = await fetch(`./JSON/${file}`);
     if (!response.ok) throw new Error(`Tidak dapat memuat JSON/${file}.`);
-    const data = await response.json();
-    const stats = parameterStats(data);
+    let data = await response.json();
+    const sourceFeatureCount = data.features?.length ?? null;
+    const stats = parameterStats(data, series);
+    if (config.valueProperty) config.valueRange = [stats.min, stats.max];
     const span = stats.max - stats.min;
     const colorStops = config.colors.map((color, index) => [
       stats.min + span * index / (config.colors.length - 1), color,
     ]);
-    const visible = selectedYears[series] === Number(year) && $(`[data-layer="${series}"]`).checked;
+    const visible = String(selectedYears[series]) === String(year) && $(`[data-layer="${series}"]`).checked;
     await addCesiumGeoJsonLayer(id, data, (_entity, properties) => {
-      const gridcode = Number(properties?.gridcode?.getValue?.(Cesium.JulianDate.now()) ?? properties?.gridcode);
+      const propertyName = config.valueProperty || 'gridcode';
+      const value = Number(properties?.[propertyName]?.getValue?.(Cesium.JulianDate.now()) ?? properties?.[propertyName]);
       const classColors = config.classRanges?.[year] ? config.classColors : null;
+      const color = (classColors
+        ? Cesium.Color.fromCssColorString(classColors[value - 1] || classColors[0])
+        : colorAtValue(config.colors, value, config.valueRange?.[0] ?? stats.min, config.valueRange?.[1] ?? stats.max)).withAlpha(0.82);
       return {
-        fill: (classColors
-          ? Cesium.Color.fromCssColorString(classColors[gridcode - 1] || classColors[0])
-          : colorAtValue(config.colors, gridcode, stats.min, stats.max)).withAlpha(0.78),
+        fill: color.withAlpha(0.78),
+        point: config.valueRange ? {
+          pixelSize: 5,
+          color,
+          outlineColor: Cesium.Color.fromCssColorString('#102b3b').withAlpha(0.55),
+          outlineWidth: 0.5,
+          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+          disableDepthTestDistance: 5000,
+        } : null,
       };
     }, visible);
-    const result = { ...stats, file };
+    const result = { ...stats, file, sourceFeatureCount, featureCount: data.features.length };
     loadedParameters[id] = result;
-    if (selectedYears[series] === Number(year)) renderParameterLegend(series, year, result);
+    if (String(selectedYears[series]) === String(year)) renderParameterLegend(series, year, result);
     return result;
   })().catch((error) => {
     delete parameterLoads[id];
@@ -265,7 +545,7 @@ async function ensureMorphologyLayer(year) {
       const code = Number(properties?.kelas?.getValue?.(Cesium.JulianDate.now()) ?? properties?.kelas);
       return { fill: Cesium.Color.fromCssColorString(morphologyClassColors[code] || '#8e9a91').withAlpha(code === 1 ? .72 : .24) };
     }, false);
-    return { totals, year, id };
+    return { totals, year, id, featureCount: data.features.length };
   })().then((result) => {
     loadedMorphologies[year] = result;
     return result;
@@ -314,7 +594,7 @@ $$('.year-button').forEach((button) => {
   button.addEventListener('click', () => {
     const { series, year, available } = button.dataset;
     if (available !== 'true' || !parameterData[series]) {
-      const label = series === 'waves' ? 'Gelombang' : series === 'chlorophyll' ? 'Klorofil-a' : series.toUpperCase();
+      const label = series === 'chlorophyll' ? 'Klorofil-a' : series.toUpperCase();
       toast(`Data ${label} ${year} belum tersedia`);
       return;
     }
@@ -550,6 +830,7 @@ async function loadShorelineRates() {
   if (!response.ok) throw new Error('File transek garis pantai tidak dapat dimuat.');
   const data = await response.json();
   if (data.type !== 'FeatureCollection' || !Array.isArray(data.features)) throw new Error('Format GeoJSON garis pantai tidak valid.');
+  reportLayerStats['shoreline-epr'] = { featureCount: data.features.length };
   updateShorelineSummary(data);
   await addCesiumGeoJsonLayer('shoreline-epr', data, (_entity, properties) => {
     const epr = Number(properties?.epr?.getValue?.(Cesium.JulianDate.now()) ?? properties?.epr);
@@ -691,10 +972,16 @@ async function initializeMapData() {
     const match = layerId.match(/^(sst|chlorophyll|tss)-(\d+)-fill$/);
     if (match) {
       const [, series, year] = match;
-      const classRange = parameterData[series].classRanges?.[year]?.find((range) => range.code === Number(props.gridcode));
-      lines.push(classRange
-        ? `SST ${year} · Kelas ${classRange.code}: ${classRange.min.toFixed(3).replace('.', ',')}–${classRange.max.toFixed(3).replace('.', ',')} °C`
-        : `${parameterData[series].label} ${year}: ${props.gridcode} (gridcode)`);
+      const config = parameterData[series];
+      if (config.valueProperty) {
+        const value = Number(props[config.valueProperty]);
+        lines.push(`${config.label} ${year}: ${value.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${config.unit}`);
+      } else {
+        const classRange = config.classRanges?.[year]?.find((range) => range.code === Number(props.gridcode));
+        lines.push(classRange
+          ? `${config.label} ${year} · Kelas ${classRange.code}: ${classRange.min.toFixed(3).replace('.', ',')}–${classRange.max.toFixed(3).replace('.', ',')} ${config.unit || ''}`
+          : `${config.label} ${year}: ${props.gridcode} (gridcode)`);
+      }
     }
     if (layerId === 'shoreline-epr') {
       const dateLabel = window.shorelineDateLabel || ((value) => value);
@@ -702,7 +989,9 @@ async function initializeMapData() {
     }
     if (layerId.startsWith('morphology-')) lines.push(`Kelas ${props.kelas}: ${props.nama_kelas}`, `Luas poligon: ${Number(props.luas_ha).toLocaleString('id-ID', { maximumFractionDigits: 2 })} ha`, `Tahun data: ${props.tahun}`);
     if (layerId.startsWith('risk-')) lines.push(`Zona ${props.zone} · radius simulasi ${props.zone === 'normal' ? '0–3' : props.zone === 'siaga' ? '3–5' : '5–8'} km`);
-    showCesiumPopup(event.position, layerId === 'shoreline-epr' ? 'Transek garis pantai' : layerId.startsWith('morphology-') ? 'Morfologi Anak Krakatau' : 'Informasi titik', lines);
+    const parameterMatch = layerId.match(/^(sst|chlorophyll|tss)-(\d+)-fill$/);
+    const parameterTitle = parameterMatch ? `${parameterData[parameterMatch[1]].label} ${parameterMatch[2]}` : 'Informasi titik';
+    showCesiumPopup(event.position, layerId === 'shoreline-epr' ? 'Transek garis pantai' : layerId.startsWith('morphology-') ? 'Morfologi Anak Krakatau' : parameterTitle, lines);
   }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 }
 initializeMapData().catch((error) => { console.warn('Layer peta Cesium:', error); toast('Sebagian layer peta gagal dimuat'); });
@@ -768,15 +1057,6 @@ $$('.layer-list input').forEach((input) => input.addEventListener('change', () =
       toast(`Layer ${parameterData[series].label} ${year} gagal dimuat`);
       console.warn(error);
     });
-    return;
-  }
-
-  if (series === 'waves') {
-    toast(input.checked ? 'Data gelombang menyusul' : 'Layer gelombang disembunyikan');
-    if (input.checked) {
-      input.checked = false;
-      if (yearOptions) yearOptions.hidden = true;
-    }
     return;
   }
 
@@ -907,7 +1187,6 @@ $('#infoOpen').addEventListener('click', () => setInfoPanelVisible(true));
 
 const series = {
   SPL: ['M12 61 116 54 220 58 324 48 428 49 520 46', 'M12 81 116 73 220 99 324 69 428 67 520 59'],
-  Gelombang: ['M12 93 116 79 220 84 324 67 428 57 520 50', 'M12 104 116 88 220 96 324 76 428 68 520 62'],
   'Klorofil-a': ['M12 72 116 65 220 61 324 68 428 54 520 48', 'M12 58 116 71 220 84 324 77 428 88 520 94'],
 };
 $('#chartTabs').addEventListener('click', (event) => {
@@ -929,6 +1208,7 @@ document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape') {
     $('#modal').classList.remove('open');
     $('#downloadModal').classList.remove('open');
+    if (!reportExportModal.hidden) closeReportExport();
     periodMenu.classList.remove('open');
     if (!timeline.hidden) closeDeformationTimeline();
   }
@@ -1237,5 +1517,3 @@ $('#timelinePlay').addEventListener('click', () => {
   $('#timelinePlay span').textContent = 'Jeda';
   timelinePlayTimer = setInterval(() => showTimelineYear(selectedTimelineYear >= 2023 ? 2017 : selectedTimelineYear + 1), 1800);
 });
-
-
