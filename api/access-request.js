@@ -38,6 +38,9 @@ module.exports = async (req, res) => {
     const safeError = [400, 409, 503].includes(error.statusCode)
       ? error.message
       : 'FormSubmit menolak permohonan. Email belum dikirim; periksa konfigurasi dan coba lagi.';
-    return json(res, error.statusCode || 502, { error: safeError });
+    const providerMessage = error.statusCode === 502 && error.providerMessage
+      ? ` Alasan dari FormSubmit: ${error.providerMessage}`
+      : '';
+    return json(res, error.statusCode || 502, { error: `${safeError}${providerMessage}` });
   }
 };
