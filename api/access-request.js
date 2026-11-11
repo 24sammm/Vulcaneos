@@ -8,29 +8,33 @@ module.exports = async (req, res) => {
 
   const body = req.body || {};
   if (body.website) return json(res, 200, { sent: true });
+  let siteOrigin;
+  try {
+    siteOrigin = new URL(origin || `${req.headers['x-forwarded-proto'] || 'https'}://${req.headers.host}`).origin;
+  } catch {
+    return json(res, 400, { error: 'Alamat asal situs tidak valid.' });
+  }
   const details = {
     name: typeof body.name === 'string' ? body.name.trim() : '',
     institution: typeof body.institution === 'string' ? body.institution.trim() : '',
     email: typeof body.email === 'string' ? body.email.trim() : '',
     username: typeof body.username === 'string' ? body.username.trim() : '',
-    password: typeof body.password === 'string' ? body.password : '',
-    confirmPassword: typeof body.confirmPassword === 'string' ? body.confirmPassword : '',
     reason: typeof body.reason === 'string' ? body.reason.trim() : '',
   };
   if (!details.name || details.name.length > 120 || !details.institution || details.institution.length > 160
     || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(details.email) || details.email.length > 254
-    || !/^[A-Za-z0-9._-]{3,32}$/.test(details.username) || details.password.length < 12 || details.password.length > 128
-    || details.password.includes(',') || details.password !== details.confirmPassword
-    || !details.reason || details.reason.length > 300) {
-    return json(res, 400, { error: 'Periksa kembali form. ID harus 3–32 karakter; kata sandi minimal 12 karakter, tanpa koma, dan konfirmasinya harus sama.' });
+    || !/^[A-Za-z0-9._-]{3,32}$/.test(details.username) || !details.reason || details.reason.length > 300) {
+    return json(res, 400, { error: 'Periksa kembali nama, instansi, email, ID pengguna, dan keperluan akses.' });
   }
-  delete details.confirmPassword;
 
   try {
-    await sendAccessRequest(details);
+    await sendAccessRequest(details, siteOrigin);
     return json(res, 200, { sent: true });
   } catch (error) {
     console.error('Access request email error:', error.message);
-    return json(res, error.statusCode || 502, { error: error.statusCode === 503 ? error.message : 'Email permohonan gagal dikirim. Coba lagi nanti.' });
+    const safeError = [400, 409, 503].includes(error.statusCode)
+      ? error.message
+      : 'FormSubmit menolak permohonan. Email belum dikirim; periksa konfigurasi dan coba lagi.';
+    return json(res, error.statusCode || 502, { error: safeError });
   }
 };
