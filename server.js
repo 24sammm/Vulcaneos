@@ -186,47 +186,13 @@ const server = http.createServer(async (request, response) => {
     return;
   }
 
-  if (request.method === 'POST' && pathname === '/api/access-request') {
-    const origin = request.headers.origin;
-    let siteOrigin;
-    try {
-      siteOrigin = new URL(origin || `${isSecureRequest(request) ? 'https' : 'http'}://${request.headers.host}`).origin;
-    } catch {
-      jsonResponse(response, 400, { error: 'Alamat asal situs tidak valid.' });
+  if (request.method === 'GET' && pathname === '/api/access-request') {
+    const adminEmail = process.env.ADMIN_EMAIL;
+    if (!adminEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(adminEmail)) {
+      jsonResponse(response, 503, { error: 'Alamat tujuan belum dikonfigurasi. Admin perlu mengatur ADMIN_EMAIL.' });
       return;
     }
-    if (origin && new URL(origin).host !== request.headers.host) {
-      jsonResponse(response, 403, { error: 'Permintaan tidak diizinkan.' });
-      return;
-    }
-    try {
-      const body = await readJsonBody(request);
-      if (body.website) {
-        jsonResponse(response, 200, { sent: true });
-        return;
-      }
-      const details = {
-        name: typeof body.name === 'string' ? body.name.trim() : '',
-        institution: typeof body.institution === 'string' ? body.institution.trim() : '',
-        email: typeof body.email === 'string' ? body.email.trim() : '',
-        username: typeof body.username === 'string' ? body.username.trim() : '',
-        reason: typeof body.reason === 'string' ? body.reason.trim() : '',
-      };
-      if (!details.name || details.name.length > 120 || !details.institution || details.institution.length > 160
-        || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(details.email) || details.email.length > 254
-        || !/^[A-Za-z0-9._-]{3,32}$/.test(details.username) || !details.reason || details.reason.length > 300) {
-        jsonResponse(response, 400, { error: 'Periksa kembali nama, instansi, email, ID pengguna, dan keperluan akses.' });
-        return;
-      }
-      await require('./lib/access-request').sendAccessRequest(details, siteOrigin);
-      jsonResponse(response, 200, { sent: true });
-    } catch (error) {
-      const status = error.statusCode || (error.message === 'Invalid JSON.' ? 400 : 502);
-      const safeError = [400, 409, 503].includes(error.statusCode)
-        ? error.message
-        : 'FormSubmit menolak permohonan. Email belum dikirim; periksa konfigurasi dan coba lagi.';
-      jsonResponse(response, status, { error: safeError });
-    }
+    jsonResponse(response, 200, { endpoint: `https://formsubmit.co/ajax/${adminEmail}` });
     return;
   }
 
