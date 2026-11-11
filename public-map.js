@@ -9,6 +9,7 @@
       colors: ['#2563eb', '#22d3ee', '#fde047', '#f97316', '#ef4444'],
       ranges: {
         2017: [[15.285, 23.422], [23.423, 26.893], [26.894, 29.172], [29.173, 31.667], [31.668, 42.95]],
+        2019: [[28.441, 29.475], [29.476, 30.571], [30.572, 33.98], [33.981, 38.91], [38.911, 43.962]],
         2023: [[20.111, 28.245], [28.246, 29.505], [29.506, 33.63], [33.631, 41.191], [41.192, 49.325]],
         2025: [[24.131, 28.915], [28.916, 30.965], [30.966, 35.635], [35.636, 43.495], [43.496, 53.177]],
       },
@@ -131,6 +132,7 @@
           entity.polygon.outline = false;
           entity.polygon.classificationType = Cesium.ClassificationType.TERRAIN;
         }
+        if (entity.point && style.point) entity.point = style.point;
       });
       source.show = visible;
       dataSources.set(id, { source, data });
@@ -245,6 +247,16 @@
 
   function colorForParameter(series, year, code) {
     const config = params[series];
+    if (config.valueProperty) {
+      const position = Math.max(0, Math.min(1, (code - config.valueRange[0]) / (config.valueRange[1] - config.valueRange[0]))) * (config.colors.length - 1);
+      const index = Math.min(config.colors.length - 2, Math.floor(position));
+      return Cesium.Color.lerp(
+        Cesium.Color.fromCssColorString(config.colors[index]),
+        Cesium.Color.fromCssColorString(config.colors[index + 1]),
+        position - index,
+        new Cesium.Color(),
+      );
+    }
     const palette = config.ranges?.[year] ? config.colors : config.colors;
     return Cesium.Color.fromCssColorString(palette[Math.max(0, Math.min(palette.length - 1, Math.round(code) - 1))]);
   }
@@ -258,8 +270,19 @@
     const filename = params[series].files[year];
     try {
       await loadGeoJson(id, filename, (_entity, properties) => {
-        const code = Number(valueOf(properties, 'gridcode'));
-        return { fill: colorForParameter(series, year, code).withAlpha(.76) };
+        const code = Number(valueOf(properties, params[series].valueProperty || 'gridcode'));
+        const color = colorForParameter(series, year, code).withAlpha(.82);
+        return {
+          fill: color.withAlpha(.76),
+          point: params[series].valueRange ? {
+            pixelSize: 5,
+            color,
+            outlineColor: Cesium.Color.fromCssColorString('#102b3b').withAlpha(.55),
+            outlineWidth: 0.5,
+            heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+            disableDepthTestDistance: 5000,
+          } : null,
+        };
       }, true);
       dataSources.forEach((entry, layerId) => {
         if (layerId.startsWith(`${series}-`)) entry.source.show = layerId === id;
@@ -280,7 +303,7 @@
       const unit = config.unit ? ` ${config.unit}` : '';
       return `<div class="parameter-class"><i style="--sample-color:${color}"></i><span>${name}</span><b>${value ? `${value}${unit}` : 'kelas visual'}</b></div>`;
     }).join('');
-    $('#publicParameterTitle').textContent = `${config.label} · ${year}`;
+    $('#publicParameterTitle').textContent = `${config.label}${config.showYear === false ? '' : ` · ${year}`}`;
     $('#publicParameterLegendRows').innerHTML = `<div class="parameter-colorbar" aria-hidden="true">${config.colors.map((color) => `<i style="--sample-color:${color}"></i>`).join('')}</div><div class="parameter-class-list">${labels}</div>`;
     activeLegend = `${series}-${year}`;
     $('#publicParameterLegend').hidden = false;
@@ -396,7 +419,17 @@
     else if (layerId === 'shoreline') lines.push(`EPR: ${Number(props.epr).toFixed(2)} m/tahun`, `NSM: ${Number(props.nsm).toFixed(2)} m`);
     else if (layerId === 'risk') lines.push(`Radius ${props.range}`, 'Zona simulasi, bukan peringatan resmi');
     else if (layerId.startsWith('morphology-')) lines.push(`Kelas ${props.kelas}: ${props.nama_kelas}`, `Luas poligon: ${Number(props.luas_ha).toLocaleString('id-ID', { maximumFractionDigits: 2 })} ha`, `Tahun data: ${props.tahun}`);
-    else {
+    else if (params[layerId.split('-')[0]]?.valueProperty) {
+      const [series, year] = layerId.split('-');
+      const value = Number(props[params[series].valueProperty]);
+      if (params[series].showYear === false) {
+        lines.push(
+          `Rata-rata SWH lokasi: ${value.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m`,
+          `Rentang record: ${Number(props.swh_min_m).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}–${Number(props.swh_max_m).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m`,
+          `Jumlah record: ${Number(props.sample_count).toLocaleString('id-ID')}`,
+        );
+      } else lines.push(`${params[series].label} ${year}: ${value.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${params[series].unit}`);
+    } else {
       const [series, year] = layerId.split('-');
       const code = Number(props.gridcode);
       const range = params[series].ranges?.[year]?.[code - 1];
