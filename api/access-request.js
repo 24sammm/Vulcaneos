@@ -31,7 +31,10 @@ module.exports = async (req, res) => {
     await sendAccessRequest(details, siteOrigin);
     return json(res, 200, { sent: true });
   } catch (error) {
-    console.error('Access request email error:', error.message);
+    console.error('Access request email error:', {
+      message: error.message,
+      providerMessage: error.providerMessage || null,
+    });
     const safeError = [400, 409, 503].includes(error.statusCode)
       ? error.message
       : 'FormSubmit menolak permohonan. Email belum dikirim; periksa konfigurasi dan coba lagi.';
