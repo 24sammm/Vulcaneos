@@ -1,12 +1,13 @@
 const fs = require('node:fs');
 const path = require('node:path');
-const { getSession } = require('../lib/auth');
+const { getSession, isAdmin } = require('../lib/auth');
 
 module.exports = (req, res) => {
   try {
-    if (!getSession(req)) {
+    const session = getSession(req);
+    if (!session || !isAdmin(session.sub)) {
       res.statusCode = 302;
-      res.setHeader('Location', '/login.html');
+      res.setHeader('Location', session ? '/peta.html' : '/login.html');
       res.setHeader('Cache-Control', 'no-store');
       return res.end();
     }
