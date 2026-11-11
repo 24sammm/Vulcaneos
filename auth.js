@@ -40,7 +40,7 @@ if (loginForm) {
         throw new Error('Endpoint autentikasi mengirim respons kosong. Jalankan aplikasi dengan `npm start` atau `vercel dev`, bukan Live Server.');
       }
       if (!response.ok) throw new Error(result.error || 'ID atau kata sandi tidak sesuai.');
-      window.location.assign('/webgis.html');
+      window.location.assign(result.role === 'admin' ? '/webgis.html' : '/peta.html');
     } catch (error) {
       status.textContent = error.message === 'Failed to fetch'
         ? 'Server autentikasi belum berjalan. Jalankan server dengan npm start.'
@@ -52,7 +52,9 @@ if (loginForm) {
 
   fetch('/api/me', { credentials: 'same-origin' })
     .then((response) => response.ok ? response.json() : null)
-    .then((session) => { if (session?.authenticated) window.location.assign('/webgis.html'); })
+    .then((session) => {
+      if (session?.authenticated) window.location.assign(session.role === 'admin' ? '/webgis.html' : '/peta.html');
+    })
     .catch(() => {});
 }
 
@@ -62,11 +64,6 @@ if (accessRequestForm) {
   const submit = accessRequestForm.querySelector('[type="submit"]');
   accessRequestForm.addEventListener('submit', async (event) => {
     event.preventDefault();
-    if (accessRequestForm.elements.password.value !== accessRequestForm.elements.confirmPassword.value) {
-      status.textContent = 'Konfirmasi kata sandi belum sama.';
-      accessRequestForm.elements.confirmPassword.focus();
-      return;
-    }
     status.textContent = 'Mengirim permohonan…';
     submit.disabled = true;
     try {
@@ -82,7 +79,7 @@ if (accessRequestForm) {
       catch { throw new Error('Endpoint permintaan akses tidak aktif. Jalankan dengan `npm start` atau `vercel dev`.'); }
       if (!response.ok) throw new Error(result.error || 'Permintaan gagal dikirim.');
       accessRequestForm.reset();
-      status.textContent = 'Permohonan terkirim. Administrator akan meninjau permintaan Anda.';
+      status.textContent = 'Permohonan berhasil dikirim ke layanan email untuk diteruskan ke admin.';
     } catch (error) {
       status.textContent = error.message === 'Failed to fetch'
         ? 'Server tidak dapat dihubungi. Jalankan dengan npm start atau vercel dev.'
