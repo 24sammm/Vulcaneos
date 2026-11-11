@@ -3,9 +3,31 @@ const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 const parameterData = {
   sst: {
     label: 'SST',
+    unit: '°C',
     colors: ['#2563eb', '#22d3ee', '#fde047', '#f59e0b', '#ef4444', '#d946ef'],
     years: { 2017: 'SST17.json', 2019: 'SST19.json', 2023: 'SST23.json', 2025: 'SST25.json' },
     classRanges: {
+      2017: [
+        { code: 1, min: 15.285, max: 23.422 },
+        { code: 2, min: 23.423, max: 26.893 },
+        { code: 3, min: 26.894, max: 29.172 },
+        { code: 4, min: 29.173, max: 31.667 },
+        { code: 5, min: 31.668, max: 42.95 },
+      ],
+      2019: [
+        { code: 1, min: 28.441, max: 29.475 },
+        { code: 2, min: 29.476, max: 30.571 },
+        { code: 3, min: 30.572, max: 33.98 },
+        { code: 4, min: 33.981, max: 38.91 },
+        { code: 5, min: 38.911, max: 43.962 },
+      ],
+      2023: [
+        { code: 1, min: 20.111, max: 28.245 },
+        { code: 2, min: 28.246, max: 29.505 },
+        { code: 3, min: 29.506, max: 33.63 },
+        { code: 4, min: 33.631, max: 41.191 },
+        { code: 5, min: 41.192, max: 49.325 },
+      ],
       2025: [
         { code: 1, min: 24.131, max: 28.915 },
         { code: 2, min: 28.916, max: 30.965 },
@@ -18,29 +40,74 @@ const parameterData = {
     classColors: ['#2563eb', '#22d3ee', '#fde047', '#f97316', '#ef4444'],
   },
   chlorophyll: {
-    label: 'Klorofil-a', colors: ['#edf4d8', '#c5df9b', '#87bd79', '#4e9674', '#26716a', '#124b52'],
+    label: 'Klorofil-a', unit: 'mg/m³', colors: ['#edf4d8', '#c5df9b', '#87bd79', '#4e9674', '#26716a', '#124b52'],
     years: { 2017: 'CHL17.json', 2019: 'CHL19.json', 2023: 'CHL23.json', 2025: 'CHL25.json' },
+    classRanges: {
+      2017: [
+        { code: 1, min: 0.068, max: 0.157 },
+        { code: 2, min: 0.158, max: 0.222 },
+        { code: 3, min: 0.223, max: 0.3 },
+        { code: 4, min: 0.301, max: 1.166 },
+        { code: 5, min: 1.167, max: 3.365 },
+      ],
+      2019: [
+        { code: 1, min: 1.785, max: 1.839 },
+        { code: 2, min: 1.84, max: 2.005 },
+        { code: 3, min: 2.006, max: 2.67 },
+        { code: 4, min: 2.671, max: 5.05 },
+        { code: 5, min: 5.051, max: 8.841 },
+      ],
+      2023: [
+        { code: 1, min: 1.748, max: 1.917 },
+        { code: 2, min: 1.918, max: 2.087 },
+        { code: 3, min: 2.088, max: 2.573 },
+        { code: 4, min: 2.574, max: 4.371 },
+        { code: 5, min: 4.372, max: 7.942 },
+      ],
+      2025: [
+        { code: 1, min: 0.224, max: 0.245 },
+        { code: 2, min: 0.246, max: 0.313 },
+        { code: 3, min: 0.314, max: 0.567 },
+        { code: 4, min: 0.568, max: 1.263 },
+        { code: 5, min: 1.264, max: 2.13 },
+      ],
+    },
+    classColors: ['#edf4d8', '#c5df9b', '#87bd79', '#4e9674', '#26716a'],
   },
   tss: {
-    label: 'TSS', colors: ['#e6f2ee', '#a9d6c5', '#6eb4a6', '#e2c277', '#cb8850', '#944d3c'],
+    label: 'TSS', unit: 'mg/L', colors: ['#e6f2ee', '#a9d6c5', '#6eb4a6', '#e2c277', '#cb8850', '#944d3c'],
     years: { 2017: 'TSS17.json', 2019: 'TSS19.json', 2023: 'TSS23.json', 2025: 'TSS25.json' },
-  },
-};
-const parameterReportClassRanges = {
-  sst: {
-    2017: [[15.285, 23.422], [23.423, 26.893], [26.894, 29.172], [29.173, 31.667], [31.668, 42.95]],
-    2019: [[28.441, 29.475], [29.476, 30.571], [30.572, 33.98], [33.981, 38.91], [38.911, 43.962]],
-    2023: [[20.111, 28.245], [28.246, 29.505], [29.506, 33.63], [33.631, 41.191], [41.192, 49.325]],
-  },
-  chlorophyll: {
-    2017: [[0.068, 0.157], [0.158, 0.222], [0.223, 0.3], [0.301, 1.166], [1.167, 3.365]],
-    2019: [[1.785, 1.839], [1.84, 2.005], [2.006, 2.67], [2.671, 5.05], [5.051, 8.841]],
-    2023: [[1.748, 1.917], [1.918, 2.087], [2.088, 2.573], [2.574, 4.371], [4.372, 7.942]],
-  },
-  tss: {
-    2017: [[0.935, 0.954], [0.955, 0.959], [0.96, 0.962], [0.963, 0.965], [0.966, 0.975]],
-    2019: [[0.718, 0.844], [0.845, 0.945], [0.946, 0.956], [0.957, 0.962], [0.963, 0.968]],
-    2023: [[0.063, 0.858], [0.859, 1.033], [1.034, 1.118], [1.119, 1.171], [1.172, 1.27]],
+    classRanges: {
+      2017: [
+        { code: 1, min: 0.935, max: 0.954 },
+        { code: 2, min: 0.955, max: 0.959 },
+        { code: 3, min: 0.96, max: 0.962 },
+        { code: 4, min: 0.963, max: 0.965 },
+        { code: 5, min: 0.966, max: 0.975 },
+      ],
+      2019: [
+        { code: 1, min: 0.718, max: 0.844 },
+        { code: 2, min: 0.845, max: 0.945 },
+        { code: 3, min: 0.946, max: 0.956 },
+        { code: 4, min: 0.957, max: 0.962 },
+        { code: 5, min: 0.963, max: 0.968 },
+      ],
+      2023: [
+        { code: 1, min: 0.063, max: 0.858 },
+        { code: 2, min: 0.859, max: 1.033 },
+        { code: 3, min: 1.034, max: 1.118 },
+        { code: 4, min: 1.119, max: 1.171 },
+        { code: 5, min: 1.172, max: 1.27 },
+      ],
+      2025: [
+        { code: 1, min: 0.851, max: 0.996 },
+        { code: 2, min: 0.997, max: 1.103 },
+        { code: 3, min: 1.104, max: 1.136 },
+        { code: 4, min: 1.137, max: 1.145 },
+        { code: 5, min: 1.146, max: 1.156 },
+      ],
+    },
+    classColors: ['#e6f2ee', '#a9d6c5', '#6eb4a6', '#cb8850', '#944d3c'],
   },
 };
 const selectedYears = { sst: 2017, chlorophyll: 2017, tss: 2017 };
@@ -162,9 +229,7 @@ function buildAdminReport() {
       const layerId = parameterLayerId(series, year);
       const loaded = loadedParameters[layerId];
       const active = Boolean($(`[data-layer="${series}"]`)?.checked && String(selectedYears[series]) === String(year));
-      const classRanges = config.classRanges?.[year]
-        || parameterReportClassRanges[series]?.[year]?.map(([min, max], index) => ({ code: index + 1, min, max }))
-        || [];
+      const classRanges = config.classRanges?.[year] || [];
       return {
         layerId,
         name: config.label,
@@ -424,23 +489,25 @@ function renderParameterLegend(series, year, stats) {
   const config = parameterData[series];
   const physicalRange = config.physicalRanges?.[year];
   const classRanges = config.classRanges?.[year];
-  $('.sst-legend label').textContent = `${config.label}${config.showYear === false ? '' : ` ${year}`} (${config.unit || 'gridcode'})`;
+  $('.sst-legend label').textContent = `${config.label}${config.showYear === false ? '' : ` · ${year}`} · ${classRanges ? `nilai tengah kelas (${config.unit})` : config.unit || 'gridcode'}`;
   const gradient = $('.sst-gradient');
   const ticksElement = $('.sst-ticks');
-  let classLegend = $('.sst-class-legend');
+  ticksElement.classList.toggle('sst-class-ticks', Boolean(classRanges));
   if (classRanges) {
-    gradient.hidden = true;
-    ticksElement.hidden = true;
-    if (!classLegend) {
-      classLegend = document.createElement('div');
-      classLegend.className = 'sst-class-legend';
-      gradient.after(classLegend);
-    }
-    classLegend.innerHTML = classRanges.map((range) => `<div><i style="--class-color:${config.classColors[range.code - 1]}"></i><span>Kelas ${range.code}</span><b>${range.min.toFixed(3).replace('.', ',')}–${range.max.toFixed(3).replace('.', ',')} ${config.unit || ''}</b></div>`).join('');
+    gradient.hidden = false;
+    ticksElement.hidden = false;
+    const colors = classRanges.map((range) => config.classColors[range.code - 1]);
+    gradient.style.background = `linear-gradient(90deg, ${colors.map((color, index) => `${color} ${index * 20}%, ${color} ${(index + 1) * 20}%`).join(', ')})`;
+    const formatClassValue = (value) => value.toLocaleString('id-ID', { maximumFractionDigits: 4 });
+    ticksElement.replaceChildren(...classRanges.map((range) => {
+      const tick = document.createElement('span');
+      tick.textContent = formatClassValue((range.min + range.max) / 2);
+      return tick;
+    }));
   } else {
     gradient.hidden = false;
     ticksElement.hidden = false;
-    if (classLegend) classLegend.remove();
+    ticksElement.replaceChildren(...Array.from({ length: 3 }, () => document.createElement('span')));
     const ticks = [stats.min, Number(((stats.min + stats.max) / 2).toPrecision(3)), stats.max]
       .map((value) => config.unit ? value.toLocaleString('id-ID', { maximumFractionDigits: 2 }) : value);
     $$('.sst-ticks span').forEach((tick, index) => { tick.textContent = ticks[index]; });
