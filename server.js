@@ -2,7 +2,7 @@ const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
-const { profileFor } = require('./lib/auth');
+const { profileFor, isAdmin } = require('./lib/auth');
 
 const ROOT = __dirname;
 const JSON_DIR = path.join(ROOT, 'JSON');
@@ -181,12 +181,20 @@ const server = http.createServer(async (request, response) => {
       authenticated: Boolean(session),
       user: session ? session.sub : null,
       profile: session ? profileFor(session.sub) : null,
+      role: session ? (isAdmin(session.sub) ? 'admin' : 'user') : null,
     });
     return;
   }
 
   if (request.method === 'POST' && pathname === '/api/access-request') {
     const origin = request.headers.origin;
+    let siteOrigin;
+    try {
+      siteOrigin = new URL(origin || `${isSecureRequest(request) ? 'https' : 'http'}://${request.headers.host}`).origin;
+    } catch {
+      jsonResponse(response, 400, { error: 'Alamat asal situs tidak valid.' });
+      return;
+    }
     if (origin && new URL(origin).host !== request.headers.host) {
       jsonResponse(response, 403, { error: 'Permintaan tidak diizinkan.' });
       return;
@@ -202,24 +210,22 @@ const server = http.createServer(async (request, response) => {
         institution: typeof body.institution === 'string' ? body.institution.trim() : '',
         email: typeof body.email === 'string' ? body.email.trim() : '',
         username: typeof body.username === 'string' ? body.username.trim() : '',
-        password: typeof body.password === 'string' ? body.password : '',
-        confirmPassword: typeof body.confirmPassword === 'string' ? body.confirmPassword : '',
         reason: typeof body.reason === 'string' ? body.reason.trim() : '',
       };
       if (!details.name || details.name.length > 120 || !details.institution || details.institution.length > 160
         || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(details.email) || details.email.length > 254
-        || !/^[A-Za-z0-9._-]{3,32}$/.test(details.username) || details.password.length < 12 || details.password.length > 128
-        || details.password.includes(',') || details.password !== details.confirmPassword
-        || !details.reason || details.reason.length > 300) {
-        jsonResponse(response, 400, { error: 'Periksa kembali form. ID harus 3–32 karakter; kata sandi minimal 12 karakter, tanpa koma, dan konfirmasinya harus sama.' });
+        || !/^[A-Za-z0-9._-]{3,32}$/.test(details.username) || !details.reason || details.reason.length > 300) {
+        jsonResponse(response, 400, { error: 'Periksa kembali nama, instansi, email, ID pengguna, dan keperluan akses.' });
         return;
       }
-      delete details.confirmPassword;
-      await require('./lib/access-request').sendAccessRequest(details);
+      await require('./lib/access-request').sendAccessRequest(details, siteOrigin);
       jsonResponse(response, 200, { sent: true });
     } catch (error) {
       const status = error.statusCode || (error.message === 'Invalid JSON.' ? 400 : 502);
-      jsonResponse(response, status, { error: error.statusCode === 503 ? error.message : 'Email permohonan gagal dikirim. Periksa konfigurasi email server.' });
+      const safeError = [400, 409, 503].includes(error.statusCode)
+        ? error.message
+        : 'FormSubmit menolak permohonan. Email belum dikirim; periksa konfigurasi dan coba lagi.';
+      jsonResponse(response, status, { error: safeError });
     }
     return;
   }
@@ -246,7 +252,7 @@ const server = http.createServer(async (request, response) => {
       }
       clearFailedLogins(request);
       const ttl = body.remember === true ? REMEMBER_TTL_SECONDS : SESSION_TTL_SECONDS;
-      jsonResponse(response, 200, { authenticated: true }, { 'Set-Cookie': sessionCookie(request, false, ttl, user.id) });
+      jsonResponse(response, 200, { authenticated: true, role: isAdmin(user.id) ? 'admin' : 'user' }, { 'Set-Cookie': sessionCookie(request, false, ttl, user.id) });
     } catch (error) {
       jsonResponse(response, error.message === 'Invalid JSON.' ? 400 : 413, { error: 'Permintaan masuk tidak valid.' });
     }
@@ -269,10 +275,13 @@ const server = http.createServer(async (request, response) => {
     return;
   }
 
-  if (pathname === '/webgis.html' && !readSession(request)) {
-    response.writeHead(302, { Location: '/login.html', 'Cache-Control': 'no-store' });
-    response.end();
-    return;
+  if (pathname === '/webgis.html') {
+    const session = readSession(request);
+    if (!session || !isAdmin(session.sub)) {
+      response.writeHead(302, { Location: session ? '/peta.html' : '/login.html', 'Cache-Control': 'no-store' });
+      response.end();
+      return;
+    }
   }
 
   if (pathname === '/' || pathname === '/index.html') {
