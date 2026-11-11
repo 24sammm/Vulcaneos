@@ -1,106 +1,88 @@
-document.querySelectorAll('[data-toggle-password]').forEach((button) => {
-  button.addEventListener('click', () => {
-    const input = document.getElementById(button.dataset.togglePassword);
-    if (!input) return;
-    const show = input.type === 'password';
-    input.type = show ? 'text' : 'password';
-    button.setAttribute('aria-label', show ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi');
-    button.innerHTML = `<i class="fa-regular ${show ? 'fa-eye-slash' : 'fa-eye'}"></i>`;
-  });
-});
+const crypto = require('node:crypto');
 
-const loginForm = document.querySelector('#loginForm');
-if (loginForm) {
-  const status = document.querySelector('#loginStatus');
-  const submit = loginForm.querySelector('[type="submit"]');
+const COOKIE = 'kw_session';
+const SESSION_TTL = Math.max(300, Number(process.env.SESSION_TTL_SECONDS || 28800));
+const REMEMBER_TTL = Math.max(SESSION_TTL, Number(process.env.REMEMBER_TTL_SECONDS || 2592000));
 
-  loginForm.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    status.textContent = 'Memeriksa kredensial…';
-    submit.disabled = true;
-    try {
-      const response = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin',
-        body: JSON.stringify({
-          username: loginForm.elements.username.value,
-          password: loginForm.elements.password.value,
-          remember: loginForm.elements.remember.checked,
-        }),
-      });
-      const responseText = await response.text();
-      let result;
-      try {
-        result = responseText ? JSON.parse(responseText) : {};
-      } catch {
-        throw new Error('Endpoint autentikasi tidak mengirim respons JSON. Jalankan aplikasi dengan `npm start` atau `vercel dev`, bukan Live Server.');
-      }
-      if (!responseText) {
-        throw new Error('Endpoint autentikasi mengirim respons kosong. Jalankan aplikasi dengan `npm start` atau `vercel dev`, bukan Live Server.');
-      }
-      if (!response.ok) throw new Error(result.error || 'ID atau kata sandi tidak sesuai.');
-      window.location.assign(result.role === 'admin' ? '/webgis.html' : '/peta.html');
-    } catch (error) {
-      status.textContent = error.message === 'Failed to fetch'
-        ? 'Server autentikasi belum berjalan. Jalankan server dengan npm start.'
-        : error.message;
-    } finally {
-      submit.disabled = false;
-    }
-  });
-
-  fetch('/api/me', { credentials: 'same-origin' })
-    .then((response) => response.ok ? response.json() : null)
-    .then((session) => {
-      if (session?.authenticated) window.location.assign(session.role === 'admin' ? '/webgis.html' : '/peta.html');
-    })
-    .catch(() => {});
+function users() {
+  return String(process.env.AUTH_USERS || '').split(',').map((item) => {
+    const separator = item.indexOf(':');
+    if (separator < 1) return null;
+    return { id: item.slice(0, separator).trim(), password: item.slice(separator + 1) };
+  }).filter((user) => user?.id && user.password);
 }
 
-const accessRequestForm = document.querySelector('#accessRequestForm');
-if (accessRequestForm) {
-  const status = accessRequestForm.querySelector('.auth-status');
-  const submit = accessRequestForm.querySelector('[type="submit"]');
-  accessRequestForm.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    status.textContent = 'Mengirim permohonan…';
-    submit.disabled = true;
-    try {
-      const response = await fetch('/api/access-request', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin',
-        body: JSON.stringify(Object.fromEntries(new FormData(accessRequestForm).entries())),
-      });
-      const responseText = await response.text();
-      let result;
-      try { result = responseText ? JSON.parse(responseText) : {}; }
-      catch { throw new Error('Endpoint permintaan akses tidak aktif. Jalankan dengan `npm start` atau `vercel dev`.'); }
-      if (!response.ok) throw new Error(result.error || 'Permintaan gagal dikirim.');
-      accessRequestForm.reset();
-      status.textContent = 'Permohonan berhasil dikirim ke layanan email untuk diteruskan ke admin.';
-    } catch (error) {
-      status.textContent = error.message === 'Failed to fetch'
-        ? 'Server tidak dapat dihubungi. Jalankan dengan npm start atau vercel dev.'
-        : error.message;
-    } finally {
-      submit.disabled = false;
-    }
-  });
+function adminUsers() {
+  const configuredAdmins = String(process.env.AUTH_ADMIN_USERS || '').split(',').map((id) => id.trim()).filter(Boolean);
+  if (configuredAdmins.length || process.env.NODE_ENV === 'production') return configuredAdmins;
+  return users().slice(0, 1).map((user) => user.id);
 }
 
-document.querySelectorAll('[data-auth-placeholder]').forEach((button) => {
-  button.addEventListener('click', () => {
-    const status = button.closest('form')?.querySelector('.auth-status')
-      || document.querySelector('#loginStatus');
-    if (status) status.textContent = 'Pemulihan kata sandi belum diaktifkan. Hubungi administrator.';
-  });
-});
+function isAdmin(id) {
+  return adminUsers().includes(id);
+}
 
-document.querySelectorAll('[data-register-placeholder]').forEach((button) => {
-  button.addEventListener('click', () => {
-    const status = button.closest('form')?.querySelector('.auth-status');
-    if (status) status.textContent = 'Pendaftaran mandiri belum aktif. Hubungi administrator untuk meminta akses.';
-  });
-});
+function profileFor(id) {
+  let profiles = {};
+  try { profiles = JSON.parse(process.env.AUTH_PROFILES || '{}'); } catch { /* Use a safe fallback for invalid optional profile config. */ }
+  const profile = profiles && typeof profiles === 'object' ? profiles[id] : null;
+  return {
+    name: typeof profile?.name === 'string' && profile.name.trim() ? profile.name.trim() : id,
+    institution: typeof profile?.institution === 'string' && profile.institution.trim() ? profile.institution.trim() : 'Pengguna Krakatau Watch',
+  };
+}
+
+function secret() {
+  const value = process.env.AUTH_SESSION_SECRET || '';
+  if (value.length < 32) throw new Error('AUTH_SESSION_SECRET must contain at least 32 characters.');
+  return value;
+}
+
+function safeEqual(a, b) {
+  const left = crypto.createHash('sha256').update(String(a)).digest();
+  const right = crypto.createHash('sha256').update(String(b)).digest();
+  return crypto.timingSafeEqual(left, right);
+}
+
+function sign(payload) {
+  return crypto.createHmac('sha256', secret()).update(payload).digest('base64url');
+}
+
+function getSession(req) {
+  const token = String(req.headers.cookie || '').split(';').map((part) => part.trim())
+    .find((part) => part.startsWith(`${COOKIE}=`))?.slice(COOKIE.length + 1);
+  if (!token) return null;
+  const [payload, signature, extra] = token.split('.');
+  if (!payload || !signature || extra) return null;
+  const expected = Buffer.from(sign(payload), 'base64url');
+  const supplied = Buffer.from(signature, 'base64url');
+  if (expected.length !== supplied.length || !crypto.timingSafeEqual(expected, supplied)) return null;
+  try {
+    const session = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
+    if (!Number.isFinite(session.exp) || session.exp <= Date.now() / 1000) return null;
+    if (!users().some((user) => user.id === session.sub)) return null;
+    return session;
+  } catch { return null; }
+}
+
+function createCookie(id, req, remember = false) {
+  const ttl = remember ? REMEMBER_TTL : SESSION_TTL;
+  const payload = Buffer.from(JSON.stringify({ sub: id, exp: Math.floor(Date.now() / 1000) + ttl })).toString('base64url');
+  const secure = process.env.NODE_ENV === 'production' || req.headers['x-forwarded-proto'] === 'https';
+  return `${COOKIE}=${payload}.${sign(payload)}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${ttl}${secure ? '; Secure' : ''}`;
+}
+
+function clearCookie(req) {
+  const secure = process.env.NODE_ENV === 'production' || req.headers['x-forwarded-proto'] === 'https';
+  return `${COOKIE}=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0${secure ? '; Secure' : ''}`;
+}
+
+function json(res, status, body, headers = {}) {
+  res.statusCode = status;
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-store');
+  Object.entries(headers).forEach(([name, value]) => res.setHeader(name, value));
+  res.end(JSON.stringify(body));
+}
+
+module.exports = { users, adminUsers, isAdmin, profileFor, safeEqual, getSession, createCookie, clearCookie, json };
