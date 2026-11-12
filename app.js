@@ -485,10 +485,23 @@ function parameterStats(data, series) {
   };
 }
 
+function renderParameterSummary(series, year) {
+  const config = parameterData[series];
+  const card = $(`[data-parameter-card="${series}"]`);
+  const ranges = config?.classRanges?.[year];
+  if (!card || !ranges?.length) return;
+  const record = Math.max(...ranges.map((range) => range.max));
+  $('.metric-title', card).textContent = `${config.label} · ${year}`;
+  $('.metric-value', card).innerHTML = `${record.toLocaleString('id-ID', { maximumFractionDigits: 3 })}<span>${config.unit}</span>`;
+  $('.metric-foot span', card).textContent = `NILAI TERTINGGI ${year}`;
+}
+
+Object.keys(parameterData).forEach((series) => renderParameterSummary(series, selectedYears[series]));
+
 function renderParameterLegend(series, year, stats) {
   const config = parameterData[series];
-  const physicalRange = config.physicalRanges?.[year];
   const classRanges = config.classRanges?.[year];
+  renderParameterSummary(series, year);
   $('.sst-legend label').textContent = `${config.label}${config.showYear === false ? '' : ` · ${year}`} · ${classRanges ? `nilai tengah kelas (${config.unit})` : config.unit || 'gridcode'}`;
   const gradient = $('.sst-gradient');
   const ticksElement = $('.sst-ticks');
@@ -514,19 +527,6 @@ function renderParameterLegend(series, year, stats) {
     gradient.style.background = `linear-gradient(90deg, ${config.colors.join(', ')})`;
   }
 
-  if (series === 'sst') {
-    $('.metric-card.metric-cyan .metric-title').textContent = `SST ${year}`;
-    const valueLabel = physicalRange
-      ? `${physicalRange.min.toLocaleString('id-ID', { maximumFractionDigits: 2 })}–${physicalRange.max.toLocaleString('id-ID', { maximumFractionDigits: 2 })}<span>°C</span>`
-      : `${stats.min}–${stats.max}<span>gridcode</span>`;
-    $('.metric-card.metric-cyan .metric-value').innerHTML = valueLabel;
-    $('.metric-card.metric-cyan .metric-foot span').textContent = physicalRange ? 'RENTANG SUHU SST' : 'RENTANG GRIDCODE SST';
-  }
-  if (series === 'chlorophyll') {
-    $('.metric-card.metric-green .metric-title').textContent = `Klorofil-a · ${year}`;
-    $('.metric-card.metric-green .metric-value').innerHTML = `${stats.min}–${stats.max}<span>gridcode</span>`;
-    $('.metric-card.metric-green .metric-foot span').textContent = 'RENTANG GRIDCODE';
-  }
 }
 
 const parameterLoads = {};
@@ -672,6 +672,7 @@ $$('.year-button').forEach((button) => {
       option.setAttribute('aria-pressed', String(selected));
     });
     selectedYears[series] = Number(year);
+    renderParameterSummary(series, Number(year));
     activateParameterSeries(series);
     const layerToggle = $(`[data-layer="${series}"]`);
     if (layerToggle) layerToggle.checked = true;
