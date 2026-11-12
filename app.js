@@ -502,7 +502,7 @@ function renderParameterLegend(series, year, stats) {
   const config = parameterData[series];
   const classRanges = config.classRanges?.[year];
   renderParameterSummary(series, year);
-  $('.sst-legend label').textContent = `${config.label}${config.showYear === false ? '' : ` · ${year}`} · ${classRanges ? `nilai tengah kelas (${config.unit})` : config.unit || 'gridcode'}`;
+  $('.sst-legend label').textContent = `${config.label}${config.showYear === false ? '' : ` · ${year}`} · ${config.unit || 'gridcode'}`;
   const gradient = $('.sst-gradient');
   const ticksElement = $('.sst-ticks');
   ticksElement.classList.toggle('sst-class-ticks', Boolean(classRanges));
@@ -528,6 +528,8 @@ function renderParameterLegend(series, year, stats) {
   }
 
 }
+
+renderParameterLegend('sst', selectedYears.sst);
 
 const parameterLoads = {};
 function activateParameterSeries(series) {
