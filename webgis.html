@@ -13,7 +13,7 @@
   <link href="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.css" rel="stylesheet" />
   <link href="https://cesium.com/downloads/cesiumjs/releases/1.147/Build/Cesium/Widgets/widgets.css" rel="stylesheet" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=info-panel-scroll-1" />
+  <link rel="stylesheet" href="style.css?v=metric-records-1" />
   <link rel="stylesheet" href="download-modal.css" />
   <link rel="stylesheet" href="logo.css" />
 </head>
@@ -54,9 +54,10 @@
       </header>
 
       <section class="metrics" aria-label="Ringkasan parameter">
-        <article class="metric-card metric-cyan"><div class="metric-top"><span class="metric-icon"><i class="fa-solid fa-temperature-half"></i></span><span class="metric-title">SST · 2017</span><span class="metric-menu">···</span></div><div class="metric-value">1–5<span>gridcode</span></div><div class="metric-foot"><span>RENTANG GRIDCODE SST</span></div></article>
+        <article class="metric-card metric-cyan" data-parameter-card="sst"><div class="metric-top"><span class="metric-icon"><i class="fa-solid fa-temperature-half"></i></span><span class="metric-title">SST · 2017</span><span class="metric-menu">···</span></div><div class="metric-value">42,95<span>°C</span></div><div class="metric-foot"><span>NILAI TERTINGGI 2017</span></div></article>
         <article class="metric-card metric-blue"><div class="metric-top"><span class="metric-icon"><i class="fa-solid fa-water"></i></span><span class="metric-title">Parameter gelombang</span><span class="metric-menu">&middot;&middot;&middot;</span></div><div class="metric-value">Nonaktif<span>sementara</span></div><div class="metric-foot"><span>MENUNGGU DATA TERVALIDASI</span></div></article>
-        <article class="metric-card metric-green"><div class="metric-top"><span class="metric-icon"><i class="fa-solid fa-leaf"></i></span><span class="metric-title">Klorofil-a · 2017</span><span class="metric-menu">&middot;&middot;&middot;</span></div><div class="metric-value">1–5<span>gridcode</span></div><div class="metric-foot"><span>RENTANG GRIDCODE</span><svg viewBox="0 0 130 25"><path d="M0 19 14 19 26 16 39 16 50 12 65 15 76 10 88 13 98 7 110 11 121 4 130 6"/></svg></div></article>
+        <article class="metric-card metric-green" data-parameter-card="chlorophyll"><div class="metric-top"><span class="metric-icon"><i class="fa-solid fa-leaf"></i></span><span class="metric-title">Klorofil-a · 2017</span><span class="metric-menu">&middot;&middot;&middot;</span></div><div class="metric-value">3,365<span>mg/m³</span></div><div class="metric-foot"><span>NILAI TERTINGGI 2017</span><svg viewBox="0 0 130 25"><path d="M0 19 14 19 26 16 39 16 50 12 65 15 76 10 88 13 98 7 110 11 121 4 130 6"/></svg></div></article>
+        <article class="metric-card metric-purple" data-parameter-card="tss"><div class="metric-top"><span class="metric-icon"><i class="fa-solid fa-water"></i></span><span class="metric-title">TSS · 2017</span><span class="metric-menu">&middot;&middot;&middot;</span></div><div class="metric-value">0,975<span>mg/L</span></div><div class="metric-foot"><span>NILAI TERTINGGI 2017</span></div></article>
         <article class="metric-card metric-orange"><div class="metric-top"><span class="metric-icon"><i class="fa-solid fa-arrow-trend-down"></i></span><span class="metric-title">Perubahan garis pantai</span><span class="metric-menu">···</span></div><div class="metric-value" id="coastChangeValue">—<span>m</span></div><div class="metric-foot"><span id="coastChangePeriod">MEMUAT DATA TRANSEK</span><svg viewBox="0 0 130 25"><path d="M0 13 15 14 27 12 38 16 49 15 62 19 72 17 84 12 94 16 106 11 116 7 130 2"/></svg></div></article>
       </section>
 
