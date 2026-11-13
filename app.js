@@ -122,6 +122,10 @@ let selectedMorphologyYear = 2017;
 const morphologyClassColors = { 0: '#4e9ca0', 1: '#d8a46f' };
 const riskBands = { normal: true, siaga: true, awas: true };
 const parameterLayerId = (series, year) => `${series}-${year}-fill`;
+let waveDirectionLoad = null;
+let waveDirectionData = null;
+let selectedWaveDate = '2017-01-01';
+const waveDirectionYears = [2017, 2019, 2021, 2023, 2025];
 let viewer = null;
 let terrainEnabled = true;
 const cesiumLayers = new Map();
@@ -936,6 +940,220 @@ $('#cesiumPopup').addEventListener('click', (event) => {
   if (event.target.closest('.cesium-popup-close')) $('#cesiumPopup').hidden = true;
 });
 
+function waveCoordinate(lon, lat, eastMeters, northMeters) {
+  return Cesium.Cartesian3.fromDegrees(
+    lon + eastMeters / (111320 * Math.cos(Cesium.Math.toRadians(lat))),
+    lat + northMeters / 111320,
+  );
+}
+
+function renderWaveDirectionDate(date) {
+  const layer = cesiumLayers.get('wave-direction');
+  const records = waveDirectionData.features.filter((feature) => feature.properties.date_utc === date);
+  if (!records.length) throw new Error(`Data arah gelombang tanggal ${date} tidak ditemukan.`);
+
+  const entities = layer.dataSource.entities;
+  entities.removeAll();
+  const stationPoints = records.map((feature) => {
+    const [lon, lat] = feature.geometry.coordinates;
+    return {
+      lon,
+      lat,
+      x: (lon - records[0].geometry.coordinates[0]) * 111320 * Math.cos(Cesium.Math.toRadians(records[0].geometry.coordinates[1])),
+      y: (lat - records[0].geometry.coordinates[1]) * 111320,
+      properties: feature.properties,
+    };
+  });
+  const minX = Math.min(...stationPoints.map((station) => station.x)) - 200;
+  const maxX = Math.max(...stationPoints.map((station) => station.x)) + 200;
+  const minY = Math.min(...stationPoints.map((station) => station.y)) - 200;
+  const maxY = Math.max(...stationPoints.map((station) => station.y)) + 200;
+  const estimates = [];
+  const gridSize = 9;
+  const compassPoints = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+
+  for (let row = 0; row < gridSize; row += 1) {
+    for (let column = 0; column < gridSize; column += 1) {
+      const x = minX + ((maxX - minX) * column) / (gridSize - 1);
+      const y = minY + ((maxY - minY) * row) / (gridSize - 1);
+      let totalWeight = 0;
+      let eastDirection = 0;
+      let northDirection = 0;
+      let hsig = 0;
+      let hmax = 0;
+      stationPoints.forEach((station) => {
+        const distanceSquared = (x - station.x) ** 2 + (y - station.y) ** 2;
+        const weight = 1 / Math.max(distanceSquared, 1);
+        const bearing = Cesium.Math.toRadians(station.properties.wave_dir_deg);
+        eastDirection += Math.sin(bearing) * weight;
+        northDirection += Math.cos(bearing) * weight;
+        hsig += station.properties.hsig_m * weight;
+        hmax += station.properties.hmax_m * weight;
+        totalWeight += weight;
+      });
+      const nearestStation = stationPoints.reduce((nearest, station) => {
+        const distanceSquared = (x - station.x) ** 2 + (y - station.y) ** 2;
+        return distanceSquared < nearest.distanceSquared
+          ? { station, distanceSquared }
+          : nearest;
+      }, { station: stationPoints[0], distanceSquared: Infinity });
+      const direction = Math.hypot(eastDirection, northDirection) <= totalWeight * 1e-6
+        ? nearestStation.station.properties.wave_dir_deg
+        : (Cesium.Math.toDegrees(Math.atan2(eastDirection, northDirection)) + 360) % 360;
+      const lon = records[0].geometry.coordinates[0]
+        + x / (111320 * Math.cos(Cesium.Math.toRadians(records[0].geometry.coordinates[1])));
+      const lat = records[0].geometry.coordinates[1] + y / 111320;
+      estimates.push({
+        lon,
+        lat,
+        properties: {
+          date_utc: date,
+          year: Number(date.slice(0, 4)),
+          location: 'Interpolasi',
+          source_type: 'Estimasi interpolasi IDW',
+          source_locations: stationPoints.map((station) => station.properties.location).join(', '),
+          wave_dir_deg: direction,
+          wave_dir_compass: compassPoints[Math.round(direction / 22.5) % compassPoints.length],
+          hsig_m: hsig / totalWeight,
+          hmax_m: hmax / totalWeight,
+        },
+      });
+    }
+  }
+
+  const addArrow = (point, index, measured) => {
+    const { lon, lat, properties } = point;
+    const bearing = Cesium.Math.toRadians(properties.wave_dir_deg);
+    const length = measured ? 760 : 360;
+    const headLength = measured ? 150 : 85;
+    const halfHeadWidth = measured ? 78 : 44;
+    const east = Math.sin(bearing);
+    const north = Math.cos(bearing);
+    const tip = waveCoordinate(lon, lat, east * length, north * length);
+    const headBaseEast = east * (length - headLength);
+    const headBaseNorth = north * (length - headLength);
+    const left = waveCoordinate(lon, lat, headBaseEast - north * halfHeadWidth, headBaseNorth + east * halfHeadWidth);
+    const right = waveCoordinate(lon, lat, headBaseEast + north * halfHeadWidth, headBaseNorth - east * halfHeadWidth);
+    const origin = Cesium.Cartesian3.fromDegrees(lon, lat);
+    const recordProperties = new Cesium.PropertyBag({
+      ...properties,
+      source_type: measured ? 'Pengukuran BMKG' : properties.source_type,
+    });
+    const entityOptions = { properties: recordProperties };
+    const layerId = `wave-${date}-${measured ? `station-${properties.location}` : `estimate-${index}`}`;
+    const color = Cesium.Color.fromCssColorString(measured ? '#f4c27a' : '#62d8e5')
+      .withAlpha(measured ? 0.96 : 0.72);
+
+    entities.add({
+      ...entityOptions,
+      id: `${layerId}-line`,
+      polyline: { positions: [origin, tip], material: color, width: measured ? 3 : 2, clampToGround: true, arcType: Cesium.ArcType.GEODESIC },
+    }).__mapLayerId = 'wave-direction';
+    entities.add({
+      ...entityOptions,
+      id: `${layerId}-head`,
+      polyline: { positions: [left, tip, right], material: color, width: measured ? 3 : 2, clampToGround: true, arcType: Cesium.ArcType.GEODESIC },
+    }).__mapLayerId = 'wave-direction';
+    if (measured) {
+      entities.add({
+        ...entityOptions,
+        id: `${layerId}-station`,
+        position: origin,
+        point: {
+          pixelSize: 7,
+          color: Cesium.Color.fromCssColorString('#f4c27a'),
+          outlineColor: Cesium.Color.fromCssColorString('#102b3b'),
+          outlineWidth: 2,
+          disableDepthTestDistance: 10000,
+        },
+        label: {
+          text: properties.location,
+          font: '600 11px DM Sans',
+          fillColor: Cesium.Color.WHITE,
+          outlineColor: Cesium.Color.BLACK,
+          outlineWidth: 3,
+          style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+          pixelOffset: new Cesium.Cartesian2(0, -16),
+          disableDepthTestDistance: 10000,
+        },
+      }).__mapLayerId = 'wave-direction';
+    } else {
+      entities.add({
+        ...entityOptions,
+        id: `${layerId}-point`,
+        position: origin,
+        point: {
+          pixelSize: 3,
+          color,
+          outlineColor: Cesium.Color.fromCssColorString('#102b3b'),
+          outlineWidth: 1,
+          disableDepthTestDistance: 10000,
+        },
+      }).__mapLayerId = 'wave-direction';
+    }
+  };
+  stationPoints.forEach((station, index) => addArrow(station, index, true));
+  estimates.forEach((estimate, index) => addArrow(estimate, index, false));
+  return { measuredCount: stationPoints.length, estimateCount: estimates.length };
+}
+
+async function ensureWaveDirectionLayer(date = selectedWaveDate) {
+  if (!cesiumLayers.has('wave-direction')) {
+    if (!waveDirectionData) {
+      if (!waveDirectionLoad) {
+        waveDirectionLoad = (async () => {
+          const response = await fetch('./JSON/ArahGelombangBMKG.json');
+          if (!response.ok) throw new Error('Data harian arah gelombang BMKG tidak dapat dimuat.');
+          const data = await response.json();
+          if (data.type !== 'FeatureCollection' || !Array.isArray(data.features) || !data.features.length) {
+            throw new Error('Format GeoJSON arah gelombang BMKG tidak valid.');
+          }
+          data.features.forEach((feature) => {
+            const properties = feature.properties || {};
+            if (feature.geometry?.type !== 'Point'
+              || !Array.isArray(feature.geometry.coordinates)
+              || feature.geometry.coordinates.length !== 2
+              || !Number.isFinite(Number(feature.geometry.coordinates[0]))
+              || !Number.isFinite(Number(feature.geometry.coordinates[1]))
+              || !/^\d{4}-\d{2}-\d{2}$/.test(properties.date_utc)
+              || !Number.isFinite(Number(properties.wave_dir_deg))
+              || !Number.isFinite(Number(properties.hmax_m))
+              || !Number.isFinite(Number(properties.hsig_m))) {
+              throw new Error('Rekaman arah gelombang BMKG memiliki geometri atau atribut yang tidak valid.');
+            }
+          });
+          waveDirectionData = data;
+          const dataSource = new Cesium.CustomDataSource('arah-gelombang-bmkg');
+          await viewer.dataSources.add(dataSource);
+          cesiumLayers.set('wave-direction', { dataSource, visible: true });
+        })().catch((error) => {
+          waveDirectionData = null;
+          waveDirectionLoad = null;
+          throw error;
+        });
+      }
+      await waveDirectionLoad;
+      waveDirectionLoad = null;
+    }
+    if (!cesiumLayers.has('wave-direction')) throw new Error('Layer arah gelombang BMKG tidak berhasil dibuat.');
+  }
+
+  return renderWaveDirectionDate(date);
+}
+
+function updateWaveDirectionDate(date) {
+  selectedWaveDate = date;
+  if (!$('[data-layer="wave-direction"]').checked) return;
+  ensureWaveDirectionLayer(date).then(({ measuredCount, estimateCount }) => {
+    if (!$('[data-layer="wave-direction"]').checked) return;
+    setCesiumLayerVisibility('wave-direction', true);
+    toast(`${measuredCount} titik ukur + ${estimateCount} titik estimasi · ${date} UTC`);
+  }).catch((error) => {
+    toast('Data arah gelombang untuk tanggal ini gagal ditampilkan');
+    console.warn(error);
+  });
+}
+
 async function initializeMapData() {
   if ($('[data-layer="sst"]').checked) {
     ensureParameterLayer('sst', 2017).catch((error) => { toast('Layer SST 2017 gagal dimuat'); console.warn(error); });
@@ -1031,6 +1249,7 @@ async function initializeMapData() {
     const entity = pickedEntities.find((item) => item.id === 'anak-krakatau-marker')
       || pickedEntities.find((item) => /^(sst|chlorophyll|tss)-\d+-fill$/.test(item.__mapLayerId || ''))
       || pickedEntities.find((item) => item.__mapLayerId === 'shoreline-epr')
+      || pickedEntities.find((item) => item.__mapLayerId === 'wave-direction')
       || pickedEntities.find((item) => item.__mapLayerId?.startsWith('morphology-'))
       || pickedEntities.find((item) => item.__mapLayerId?.startsWith('risk-'));
     if (!entity || !entity.__mapLayerId) {
@@ -1060,11 +1279,30 @@ async function initializeMapData() {
       const dateLabel = window.shorelineDateLabel || ((value) => value);
       lines.push(`Transek ${dateLabel(props.start_date)}–${dateLabel(props.end_date)}`, `EPR: ${Number(props.epr).toFixed(2)} m/tahun`, `NSM: ${Number(props.nsm).toFixed(2)} m`);
     }
+    if (layerId === 'wave-direction') {
+      const formatWaveValue = (value, digits = 2) => Number(value).toLocaleString('id-ID', { maximumFractionDigits: digits });
+      lines.push(
+        `Titik: ${props.location}`,
+        `Sumber: ${props.source_type}`,
+        ...(props.source_locations ? [`Interpolasi dari: ${props.source_locations}`] : []),
+        `Tanggal data: ${props.date_utc} UTC`,
+        `Arah asal gelombang: ${formatWaveValue(props.wave_dir_deg, 0)}° ${props.wave_dir_compass}`,
+        `Tinggi gelombang signifikan (Hsig): ${formatWaveValue(props.hsig_m)} m`,
+        `Tinggi gelombang maksimum (Hmax): ${formatWaveValue(props.hmax_m)} m`,
+      );
+    }
     if (layerId.startsWith('morphology-')) lines.push(`Kelas ${props.kelas}: ${props.nama_kelas}`, `Luas poligon: ${Number(props.luas_ha).toLocaleString('id-ID', { maximumFractionDigits: 2 })} ha`, `Tahun data: ${props.tahun}`);
     if (layerId.startsWith('risk-')) lines.push(`Zona ${props.zone} · radius simulasi ${props.zone === 'normal' ? '0–3' : props.zone === 'siaga' ? '3–5' : '5–8'} km`);
     const parameterMatch = layerId.match(/^(sst|chlorophyll|tss)-(\d+)-fill$/);
     const parameterTitle = parameterMatch ? `${parameterData[parameterMatch[1]].label} ${parameterMatch[2]}` : 'Informasi titik';
-    showCesiumPopup(event.position, layerId === 'shoreline-epr' ? 'Transek garis pantai' : layerId.startsWith('morphology-') ? 'Morfologi Anak Krakatau' : parameterTitle, lines);
+    const popupTitle = layerId === 'wave-direction'
+      ? 'Arah gelombang · BMKG'
+      : layerId === 'shoreline-epr'
+        ? 'Transek garis pantai'
+        : layerId.startsWith('morphology-')
+          ? 'Morfologi Anak Krakatau'
+          : parameterTitle;
+    showCesiumPopup(event.position, popupTitle, lines);
   }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 }
 initializeMapData().catch((error) => { console.warn('Layer peta Cesium:', error); toast('Sebagian layer peta gagal dimuat'); });
@@ -1073,6 +1311,29 @@ $$('.layer-list input').forEach((input) => input.addEventListener('change', () =
   const yearOptions = input.closest('.temporal-layer')?.querySelector('.year-options');
   if (yearOptions) yearOptions.hidden = !input.checked;
   const series = input.dataset.layer;
+
+  if (series === 'wave-direction') {
+    $('#waveControls').hidden = !input.checked;
+    if (!input.checked) {
+      setCesiumLayerVisibility('wave-direction', false);
+      toast('Arah gelombang disembunyikan');
+      return;
+    }
+    ensureWaveDirectionLayer(selectedWaveDate).then(({ measuredCount, estimateCount }) => {
+      if (!input.checked) {
+        setCesiumLayerVisibility('wave-direction', false);
+        return;
+      }
+      setCesiumLayerVisibility('wave-direction', true);
+      toast(`${measuredCount} titik ukur + ${estimateCount} titik estimasi · ${selectedWaveDate} UTC`);
+    }).catch((error) => {
+      input.checked = false;
+      $('#waveControls').hidden = true;
+      toast('Data arah gelombang gagal dimuat');
+      console.warn(error);
+    });
+    return;
+  }
 
   if (series === 'shoreline-rates') {
     setCesiumLayerVisibility('shoreline-epr', input.checked);
@@ -1149,6 +1410,22 @@ $$('.layer-list input').forEach((input) => input.addEventListener('change', () =
   toast(`${input.closest('label').textContent.trim()}: layer demo belum tersedia`);
   input.checked = false;
 }));
+
+$('#waveYear').addEventListener('change', (event) => {
+  const year = Number(event.currentTarget.value);
+  const dateInput = $('#waveDate');
+  dateInput.min = `${year}-01-01`;
+  dateInput.max = `${year}-12-31`;
+  dateInput.value = dateInput.min;
+  updateWaveDirectionDate(dateInput.value);
+});
+$('#waveDate').addEventListener('change', (event) => {
+  const date = event.currentTarget.value;
+  if (!date) return;
+  const year = Number(date.slice(0, 4));
+  if (waveDirectionYears.includes(year)) $('#waveYear').value = String(year);
+  updateWaveDirectionDate(date);
+});
 
 $('#morphologyYear').addEventListener('change', (event) => {
   selectedMorphologyYear = Number(event.target.value);
