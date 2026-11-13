@@ -72,6 +72,7 @@ body,.app-shell{background:var(--bg)}.app-shell{background:linear-gradient(90deg
 :root[data-theme="light"] .tabs{background:#f0f3f2}
 :root[data-theme="light"] .tabs button{color:#65767b}
 :root[data-theme="light"] .tabs button.selected{background:#648c80;color:#fff}
+.comparison-card .tabs{flex:0 0 auto}.comparison-card .tabs button{white-space:nowrap}.comparison-card .chart-content{grid-template-columns:minmax(0,1fr) 70px;gap:8px}.comparison-card .line-chart{padding-left:42px}.comparison-card .y-labels{width:38px;text-align:right;font-size:7px;font-variant-numeric:tabular-nums}.comparison-card .x-labels{font-size:8px;font-variant-numeric:tabular-nums}.comparison-card .chart-legend{gap:9px;font-size:8px}.class-series-line{fill:none;stroke-width:2.2;stroke-linejoin:round;stroke-linecap:round}.class-series-point{stroke:#172a32;stroke-width:1}.class-legend-dot{width:8px;height:8px;flex:0 0 8px;border-radius:50%}
 :root[data-theme="light"] .coast-stats small{color:#718187}
 :root[data-theme="light"] .coast-stats>div{background:#d9e1de}
 :root[data-theme="light"] .footer,:root[data-theme="light"] .footer-brand,:root[data-theme="light"] .footer-links a,:root[data-theme="light"] .footer-legend span{color:#627178}
