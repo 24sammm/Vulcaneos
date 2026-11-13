@@ -4,6 +4,7 @@ const parameterData = {
   sst: {
     label: 'SST',
     unit: '°C',
+    classLabels: ['Dingin', 'Sejuk', 'Sedang', 'Hangat', 'Panas'],
     colors: ['#2563eb', '#22d3ee', '#fde047', '#f59e0b', '#ef4444', '#d946ef'],
     years: { 2017: 'SST17.json', 2019: 'SST19.json', 2023: 'SST23.json', 2025: 'SST25.json' },
     classRanges: {
@@ -41,6 +42,7 @@ const parameterData = {
   },
   chlorophyll: {
     label: 'Klorofil-a', unit: 'mg/m³', colors: ['#edf4d8', '#c5df9b', '#87bd79', '#4e9674', '#26716a', '#124b52'],
+    classLabels: ['Sangat rendah', 'Rendah', 'Sedang', 'Tinggi', 'Sangat tinggi'],
     years: { 2017: 'CHL17.json', 2019: 'CHL19.json', 2023: 'CHL23.json', 2025: 'CHL25.json' },
     classRanges: {
       2017: [
@@ -76,6 +78,7 @@ const parameterData = {
   },
   tss: {
     label: 'TSS', unit: 'mg/L', colors: ['#e6f2ee', '#a9d6c5', '#6eb4a6', '#e2c277', '#cb8850', '#944d3c'],
+    classLabels: ['Sangat rendah', 'Rendah', 'Sedang', 'Tinggi', 'Sangat tinggi'],
     years: { 2017: 'TSS17.json', 2019: 'TSS19.json', 2023: 'TSS23.json', 2025: 'TSS25.json' },
     classRanges: {
       2017: [
@@ -1255,18 +1258,115 @@ function setInfoPanelVisible(visible) {
 $('#infoClose').addEventListener('click', () => setInfoPanelVisible(false));
 $('#infoOpen').addEventListener('click', () => setInfoPanelVisible(true));
 
-const series = {
-  SPL: ['M12 61 116 54 220 58 324 48 428 49 520 46', 'M12 81 116 73 220 99 324 69 428 67 520 59'],
-  'Klorofil-a': ['M12 72 116 65 220 61 324 68 428 54 520 48', 'M12 58 116 71 220 84 324 77 428 88 520 94'],
-};
+const comparisonColors = ['#399fe6', '#35bd7f', '#f0c44f', '#f18a4c', '#d96ac4'];
+function formatComparisonValue(value) {
+  return value.toLocaleString('id-ID', { maximumFractionDigits: 4 });
+}
+
+function renderComparisonChart(seriesName) {
+  const config = parameterData[seriesName];
+  if (!config) return;
+  const chartYears = Object.keys(config.classRanges).map(Number).sort((a, b) => a - b);
+  if (!chartYears.length) return;
+
+  const classValues = Array.from({ length: 5 }, (_, index) => chartYears.map((year) => {
+    const range = config.classRanges[year]?.find((item) => item.code === index + 1);
+    return range ? (range.min + range.max) / 2 : null;
+  }));
+  const values = classValues.flat().filter(Number.isFinite);
+  if (!values.length) return;
+
+  let minimum = Math.min(...values);
+  let maximum = Math.max(...values);
+  const rawSpan = maximum - minimum;
+  const padding = rawSpan === 0 ? Math.max(Math.abs(maximum) * 0.05, 1) : rawSpan * 0.12;
+  minimum -= padding;
+  maximum += padding;
+
+  const plot = { left: 12, right: 520, top: 16, bottom: 136 };
+  const x = (index) => chartYears.length === 1
+    ? (plot.left + plot.right) / 2
+    : plot.left + index * (plot.right - plot.left) / (chartYears.length - 1);
+  const y = (value) => plot.bottom - ((value - minimum) / (maximum - minimum)) * (plot.bottom - plot.top);
+  const ticks = Array.from({ length: 4 }, (_, index) => maximum - index * (maximum - minimum) / 3);
+
+  const svg = $('.line-chart svg');
+  const grid = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  grid.setAttribute('class', 'grid');
+  ticks.forEach((value) => {
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    const position = y(value);
+    line.setAttribute('d', `M0 ${position}H540`);
+    grid.append(line);
+  });
+  chartYears.forEach((_, index) => {
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    line.setAttribute('d', `M${x(index)} 0V136`);
+    grid.append(line);
+  });
+
+  const seriesGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  seriesGroup.setAttribute('class', 'class-series');
+  classValues.forEach((classData, classIndex) => {
+    const points = classData.map((value, index) => (
+      Number.isFinite(value) ? `${x(index)} ${y(value)}` : null
+    )).filter(Boolean);
+    if (!points.length) return;
+
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    line.setAttribute('class', 'class-series-line');
+    line.setAttribute('d', `M${points.join(' L')}`);
+    line.style.stroke = config.classColors[classIndex] || comparisonColors[classIndex];
+    seriesGroup.append(line);
+
+    classData.forEach((value, index) => {
+      if (!Number.isFinite(value)) return;
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('class', 'class-series-point');
+      circle.setAttribute('cx', x(index));
+      circle.setAttribute('cy', y(value));
+      circle.setAttribute('r', '3.5');
+      circle.style.fill = config.classColors[classIndex] || comparisonColors[classIndex];
+      seriesGroup.append(circle);
+    });
+  });
+
+  svg.replaceChildren(grid, seriesGroup);
+  svg.setAttribute('aria-label', `Grafik klasifikasi ${config.label} dalam ${config.unit}, tahun ${chartYears.join(', ')}`);
+  $('.y-labels').replaceChildren(...ticks.map((value) => {
+    const label = document.createElement('span');
+    label.textContent = formatComparisonValue(value);
+    return label;
+  }));
+  $('.x-labels').replaceChildren(...chartYears.map((year) => {
+    const label = document.createElement('span');
+    label.textContent = year;
+    return label;
+  }));
+  const legend = $('.chart-legend');
+  legend.replaceChildren(...classValues.map((_, index) => {
+    const item = document.createElement('span');
+    const dot = document.createElement('i');
+    dot.className = 'class-legend-dot';
+    dot.style.backgroundColor = config.classColors[index] || comparisonColors[index];
+    item.append(dot, document.createTextNode(config.classLabels[index]));
+    return item;
+  }));
+  $('.comparison-card .card-heading h2').textContent = `Klasifikasi ${config.label}`;
+  $('.comparison-card .card-heading p').textContent = `${chartYears.join(' · ')} · ${config.unit}`;
+}
+
 $('#chartTabs').addEventListener('click', (event) => {
   const button = event.target.closest('button[data-key]');
   if (!button) return;
-  $$('#chartTabs button').forEach((tab) => tab.classList.toggle('selected', tab === button));
-  const [before, after] = series[button.dataset.key];
-  $('.line-before').setAttribute('d', before);
-  $('.line-after').setAttribute('d', after);
+  $$('#chartTabs button').forEach((tab) => {
+    const selected = tab === button;
+    tab.classList.toggle('selected', selected);
+    tab.setAttribute('aria-pressed', String(selected));
+  });
+  renderComparisonChart(button.dataset.key);
 });
+renderComparisonChart('sst');
 
 $('#metadataButton').addEventListener('click', () => $('#modal').classList.add('open'));
 $('#modalClose').addEventListener('click', () => $('#modal').classList.remove('open'));
