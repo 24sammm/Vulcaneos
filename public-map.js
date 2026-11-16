@@ -41,6 +41,9 @@
   const dataSources = new Map();
   const loadingLayers = new Map();
   let activeLegend = null;
+  let waveDirectionData = null;
+  let waveDirectionLoad = null;
+  let selectedWaveDate = '2017-01-01';
   const $ = (selector, root = document) => root.querySelector(selector);
   const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
   const loading = $('#publicMapLoading');
@@ -142,6 +145,194 @@
     })().finally(() => loadingLayers.delete(id));
     loadingLayers.set(id, task);
     return task;
+  }
+
+  function waveCoordinate(lon, lat, eastMeters, northMeters) {
+    return Cesium.Cartesian3.fromDegrees(
+      lon + eastMeters / (111320 * Math.cos(Cesium.Math.toRadians(lat))),
+      lat + northMeters / 111320,
+    );
+  }
+
+  function renderWaveLegend(date) {
+    $('#publicParameterTitle').textContent = `Arah gelombang · ${date} UTC`;
+    $('#publicParameterLegendRows').innerHTML = '<div class="wave-legend-list"><span><i style="--wave-color:#62d8e5"></i>Arah estimasi interpolasi IDW</span><span><i style="--wave-color:#f4c27a"></i>Pengukuran BMKG (4 titik)</span></div>';
+    activeLegend = 'wave-direction';
+    $('#publicParameterLegend').hidden = false;
+  }
+
+  function renderWaveDirectionDate(date) {
+    const entry = dataSources.get('wave-direction');
+    const records = waveDirectionData.features.filter((feature) => feature.properties.date_utc === date);
+    if (!records.length) throw new Error(`Data arah gelombang ${date} tidak tersedia.`);
+
+    const entities = entry.source.entities;
+    entities.removeAll();
+    const reference = records[0].geometry.coordinates;
+    const referenceLatitude = Cesium.Math.toRadians(reference[1]);
+    const stations = records.map((feature) => {
+      const [lon, lat] = feature.geometry.coordinates;
+      return {
+        lon,
+        lat,
+        x: (lon - reference[0]) * 111320 * Math.cos(referenceLatitude),
+        y: (lat - reference[1]) * 111320,
+        properties: feature.properties,
+      };
+    });
+    const minX = Math.min(...stations.map((station) => station.x)) - 200;
+    const maxX = Math.max(...stations.map((station) => station.x)) + 200;
+    const minY = Math.min(...stations.map((station) => station.y)) - 200;
+    const maxY = Math.max(...stations.map((station) => station.y)) + 200;
+    const gridSize = 9;
+    const compassPoints = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+    const estimates = [];
+
+    for (let row = 0; row < gridSize; row += 1) {
+      for (let column = 0; column < gridSize; column += 1) {
+        const x = minX + ((maxX - minX) * column) / (gridSize - 1);
+        const y = minY + ((maxY - minY) * row) / (gridSize - 1);
+        let totalWeight = 0;
+        let eastDirection = 0;
+        let northDirection = 0;
+        let hsig = 0;
+        let hmax = 0;
+        stations.forEach((station) => {
+          const distanceSquared = (x - station.x) ** 2 + (y - station.y) ** 2;
+          const weight = 1 / Math.max(distanceSquared, 1);
+          const bearing = Cesium.Math.toRadians(station.properties.wave_dir_deg);
+          eastDirection += Math.sin(bearing) * weight;
+          northDirection += Math.cos(bearing) * weight;
+          hsig += station.properties.hsig_m * weight;
+          hmax += station.properties.hmax_m * weight;
+          totalWeight += weight;
+        });
+        const nearest = stations.reduce((result, station) => {
+          const distanceSquared = (x - station.x) ** 2 + (y - station.y) ** 2;
+          return distanceSquared < result.distanceSquared ? { station, distanceSquared } : result;
+        }, { station: stations[0], distanceSquared: Infinity });
+        const direction = Math.hypot(eastDirection, northDirection) <= totalWeight * 1e-6
+          ? nearest.station.properties.wave_dir_deg
+          : (Cesium.Math.toDegrees(Math.atan2(eastDirection, northDirection)) + 360) % 360;
+        estimates.push({
+          lon: reference[0] + x / (111320 * Math.cos(referenceLatitude)),
+          lat: reference[1] + y / 111320,
+          properties: {
+            date_utc: date,
+            location: 'Interpolasi',
+            source_type: 'Estimasi interpolasi IDW',
+            source_locations: stations.map((station) => station.properties.location).join(', '),
+            wave_dir_deg: direction,
+            wave_dir_compass: compassPoints[Math.round(direction / 22.5) % compassPoints.length],
+            hsig_m: hsig / totalWeight,
+            hmax_m: hmax / totalWeight,
+          },
+        });
+      }
+    }
+
+    const addArrow = (point, index, measured) => {
+      const { lon, lat, properties } = point;
+      const bearing = Cesium.Math.toRadians(properties.wave_dir_deg);
+      const length = measured ? 760 : 360;
+      const headLength = measured ? 150 : 85;
+      const halfHeadWidth = measured ? 78 : 44;
+      const east = Math.sin(bearing);
+      const north = Math.cos(bearing);
+      const tip = waveCoordinate(lon, lat, east * length, north * length);
+      const baseEast = east * (length - headLength);
+      const baseNorth = north * (length - headLength);
+      const left = waveCoordinate(lon, lat, baseEast - north * halfHeadWidth, baseNorth + east * halfHeadWidth);
+      const right = waveCoordinate(lon, lat, baseEast + north * halfHeadWidth, baseNorth - east * halfHeadWidth);
+      const origin = Cesium.Cartesian3.fromDegrees(lon, lat);
+      const entityProperties = new Cesium.PropertyBag({
+        ...properties,
+        source_type: measured ? 'Pengukuran BMKG' : properties.source_type,
+      });
+      const id = `wave-${date}-${measured ? `station-${properties.location}` : `estimate-${index}`}`;
+      const color = Cesium.Color.fromCssColorString(measured ? '#f4c27a' : '#62d8e5').withAlpha(measured ? .96 : .72);
+      const entityOptions = { properties: entityProperties };
+      const addEntity = (entity) => {
+        entities.add({ ...entityOptions, ...entity }).__publicLayerId = 'wave-direction';
+      };
+
+      addEntity({
+        id: `${id}-line`,
+        polyline: { positions: [origin, tip], material: color, width: measured ? 3 : 2, clampToGround: true, arcType: Cesium.ArcType.GEODESIC },
+      });
+      addEntity({
+        id: `${id}-head`,
+        polyline: { positions: [left, tip, right], material: color, width: measured ? 3 : 2, clampToGround: true, arcType: Cesium.ArcType.GEODESIC },
+      });
+      if (measured) {
+        addEntity({
+          id: `${id}-station`,
+          position: origin,
+          point: { pixelSize: 7, color, outlineColor: Cesium.Color.fromCssColorString('#102b3b'), outlineWidth: 2, disableDepthTestDistance: 10000 },
+          label: { text: properties.location, font: '600 11px DM Sans', fillColor: Cesium.Color.WHITE, outlineColor: Cesium.Color.BLACK, outlineWidth: 3, style: Cesium.LabelStyle.FILL_AND_OUTLINE, pixelOffset: new Cesium.Cartesian2(0, -16), disableDepthTestDistance: 10000 },
+        });
+      } else {
+        addEntity({
+          id: `${id}-point`,
+          position: origin,
+          point: { pixelSize: 3, color, outlineColor: Cesium.Color.fromCssColorString('#102b3b'), outlineWidth: 1, disableDepthTestDistance: 10000 },
+        });
+      }
+    };
+
+    stations.forEach((station, index) => addArrow(station, index, true));
+    estimates.forEach((estimate, index) => addArrow(estimate, index, false));
+    return { measuredCount: stations.length, estimateCount: estimates.length };
+  }
+
+  async function setWaveDirectionDate(date) {
+    if (!waveDirectionData) {
+      if (!waveDirectionLoad) {
+        waveDirectionLoad = (async () => {
+          const response = await fetch('./JSON/ArahGelombangBMKG.json');
+          if (!response.ok) throw new Error('Data arah gelombang BMKG gagal dimuat.');
+          const data = await response.json();
+          if (data.type !== 'FeatureCollection' || !Array.isArray(data.features) || !data.features.length) {
+            throw new Error('Format data arah gelombang BMKG tidak valid.');
+          }
+          data.features.forEach((feature) => {
+            const properties = feature.properties || {};
+            if (feature.geometry?.type !== 'Point'
+              || !Array.isArray(feature.geometry.coordinates)
+              || feature.geometry.coordinates.length !== 2
+              || !/^\d{4}-\d{2}-\d{2}$/.test(properties.date_utc)
+              || !Number.isFinite(Number(properties.wave_dir_deg))
+              || !Number.isFinite(Number(properties.hsig_m))
+              || !Number.isFinite(Number(properties.hmax_m))) {
+              throw new Error('Rekaman arah gelombang BMKG memiliki data yang tidak valid.');
+            }
+          });
+          waveDirectionData = data;
+        })().catch((error) => {
+          waveDirectionData = null;
+          waveDirectionLoad = null;
+          throw error;
+        });
+      }
+      await waveDirectionLoad;
+      waveDirectionLoad = null;
+    }
+
+    let entry = dataSources.get('wave-direction');
+    if (!entry) {
+      const source = new Cesium.CustomDataSource('arah-gelombang-bmkg');
+      await viewer.dataSources.add(source);
+      entry = { source, data: waveDirectionData };
+      dataSources.set('wave-direction', entry);
+    }
+    if (date !== selectedWaveDate) return null;
+    const counts = renderWaveDirectionDate(date);
+    const isEnabled = $('[data-public-layer="wave-direction"]').checked;
+    entry.source.show = isEnabled;
+    if (isEnabled) renderWaveLegend(date);
+    else if (activeLegend === 'wave-direction') $('#publicParameterLegend').hidden = true;
+    $('#publicWaveStatus').textContent = `${counts.estimateCount} titik estimasi + ${counts.measuredCount} titik ukur · UTC/GMT`;
+    return counts;
   }
 
   const shorelineInput = $('[data-public-layer="shoreline"]');
@@ -327,6 +518,23 @@
     const key = input.dataset.publicLayer;
     const yearList = $(`[data-public-years="${key}"]`);
     if (yearList) yearList.hidden = !input.checked;
+    if (key === 'wave-direction') {
+      const controls = $('#publicWaveControls');
+      const entry = dataSources.get('wave-direction');
+      controls.hidden = !input.checked;
+      if (!input.checked) {
+        if (entry) entry.source.show = false;
+        if (activeLegend === 'wave-direction') $('#publicParameterLegend').hidden = true;
+        return;
+      }
+      setWaveDirectionDate(selectedWaveDate).catch((error) => {
+        input.checked = false;
+        controls.hidden = true;
+        $('#publicWaveStatus').textContent = 'Data arah gelombang gagal dimuat.';
+        console.warn('Layer arah gelombang BMKG:', error);
+      });
+      return;
+    }
     if (key === 'shoreline') {
       const entry = dataSources.get('shoreline');
       if (entry) entry.source.show = input.checked;
@@ -347,6 +555,33 @@
     if (key === 'risk') riskEntities.forEach((entity) => { entity.show = input.checked; });
     if (params[key]) setParameter(key, selectedYears[key], input.checked);
   }));
+  $('#publicWaveYear').addEventListener('change', (event) => {
+    const year = Number(event.currentTarget.value);
+    const dateInput = $('#publicWaveDate');
+    dateInput.min = `${year}-01-01`;
+    dateInput.max = `${year}-12-31`;
+    dateInput.value = dateInput.min;
+    selectedWaveDate = dateInput.value;
+    if ($('[data-public-layer="wave-direction"]').checked) {
+      setWaveDirectionDate(selectedWaveDate).catch((error) => {
+        $('#publicWaveStatus').textContent = 'Data arah gelombang gagal dimuat.';
+        console.warn('Tanggal arah gelombang BMKG:', error);
+      });
+    }
+  });
+  $('#publicWaveDate').addEventListener('change', (event) => {
+    const date = event.currentTarget.value;
+    if (!date) return;
+    selectedWaveDate = date;
+    const year = Number(date.slice(0, 4));
+    if ([2017, 2019, 2021, 2023, 2025].includes(year)) $('#publicWaveYear').value = String(year);
+    if ($('[data-public-layer="wave-direction"]').checked) {
+      setWaveDirectionDate(date).catch((error) => {
+        $('#publicWaveStatus').textContent = 'Data arah gelombang gagal dimuat.';
+        console.warn('Tanggal arah gelombang BMKG:', error);
+      });
+    }
+  });
   morphologyYearSelect.addEventListener('change', () => setMorphologyYear(morphologyYearSelect.value));
   $$('[data-public-year]').forEach((button) => button.addEventListener('click', () => {
     const series = button.dataset.publicYear;
@@ -421,6 +656,18 @@
     else if (layerId === 'shoreline') lines.push(`EPR: ${Number(props.epr).toFixed(2)} m/tahun`, `NSM: ${Number(props.nsm).toFixed(2)} m`);
     else if (layerId === 'risk') lines.push(`Radius ${props.range}`, 'Zona simulasi, bukan peringatan resmi');
     else if (layerId.startsWith('morphology-')) lines.push(`Kelas ${props.kelas}: ${props.nama_kelas}`, `Luas poligon: ${Number(props.luas_ha).toLocaleString('id-ID', { maximumFractionDigits: 2 })} ha`, `Tahun data: ${props.tahun}`);
+    else if (layerId === 'wave-direction') {
+      const format = (value) => Number(value).toLocaleString('id-ID', { maximumFractionDigits: 2 });
+      lines.push(
+        `Titik: ${props.location}`,
+        `Sumber: ${props.source_type}`,
+        ...(props.source_locations ? [`Interpolasi dari: ${props.source_locations}`] : []),
+        `Tanggal: ${props.date_utc} UTC`,
+        `Arah asal: ${format(props.wave_dir_deg)}° ${props.wave_dir_compass}`,
+        `Hsig: ${format(props.hsig_m)} m`,
+        `Hmax: ${format(props.hmax_m)} m`,
+      );
+    }
     else if (params[layerId.split('-')[0]]?.valueProperty) {
       const [series, year] = layerId.split('-');
       const value = Number(props[params[series].valueProperty]);
@@ -439,7 +686,7 @@
       const unit = params[series].unit ? ` ${params[series].unit}` : '';
       lines.push(range ? `${params[series].label} kelas ${code}: ${median}${unit}` : `Gridcode ${code}`);
     }
-    const popupTitle = layerId === 'shoreline' ? 'Transek garis pantai' : layerId === 'risk' ? `Zona ${props.zone}` : layerId === 'marker' ? 'Anak Krakatau' : layerId.startsWith('morphology-') ? 'Morfologi Anak Krakatau' : `${params[layerId.split('-')[0]].label} ${layerId.split('-')[1]}`;
+    const popupTitle = layerId === 'shoreline' ? 'Transek garis pantai' : layerId === 'risk' ? `Zona ${props.zone}` : layerId === 'marker' ? 'Anak Krakatau' : layerId === 'wave-direction' ? 'Arah gelombang · BMKG' : layerId.startsWith('morphology-') ? 'Morfologi Anak Krakatau' : `${params[layerId.split('-')[0]].label} ${layerId.split('-')[1]}`;
     popup.innerHTML = `<button type="button" aria-label="Tutup">&times;</button><b>${popupTitle}</b>${lines.map((line) => `<span>${line}</span>`).join('')}`;
     const close = $('button', popup);
     close.addEventListener('click', () => { popup.hidden = true; });
