@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="landing-v2.css" />
   <link rel="stylesheet" href="logo.css" />
   <link href="https://cesium.com/downloads/cesiumjs/releases/1.147/Build/Cesium/Widgets/widgets.css" rel="stylesheet" />
-  <link rel="stylesheet" href="public-map.css?v=morphology-years-1" />
+  <link rel="stylesheet" href="public-map.css?v=wave-direction-1" />
 </head>
 <body class="landing-body">
 <section class="landing-page" id="landingPage">
@@ -61,6 +61,15 @@
                 <div class="public-temporal"><label class="public-check"><input type="checkbox" data-public-layer="sst"><span></span><b>Suhu permukaan laut</b></label><div class="public-years" data-public-years="sst" hidden><button type="button" data-public-year="sst" data-year="2017" class="selected">2017</button><button type="button" data-public-year="sst" data-year="2019">2019</button><button type="button" data-public-year="sst" data-year="2023">2023</button><button type="button" data-public-year="sst" data-year="2025">2025</button></div></div>
                 <div class="public-temporal"><label class="public-check"><input type="checkbox" data-public-layer="chlorophyll"><span></span><b>Klorofil-a</b></label><div class="public-years" data-public-years="chlorophyll" hidden><button type="button" data-public-year="chlorophyll" data-year="2017" class="selected">2017</button><button type="button" data-public-year="chlorophyll" data-year="2019">2019</button><button type="button" data-public-year="chlorophyll" data-year="2023">2023</button><button type="button" data-public-year="chlorophyll" data-year="2025">2025</button></div></div>
                 <div class="public-temporal"><label class="public-check"><input type="checkbox" data-public-layer="tss"><span></span><b>TSS</b></label><div class="public-years" data-public-years="tss" hidden><button type="button" data-public-year="tss" data-year="2017" class="selected">2017</button><button type="button" data-public-year="tss" data-year="2019">2019</button><button type="button" data-public-year="tss" data-year="2023">2023</button><button type="button" data-public-year="tss" data-year="2025">2025</button></div></div>
+                <div class="public-layer-separator"></div>
+                <div class="public-temporal public-wave-layer">
+                  <label class="public-check"><input type="checkbox" data-public-layer="wave-direction"><span></span><b>Arah gelombang BMKG</b></label>
+                  <div class="public-wave-controls" id="publicWaveControls" hidden>
+                    <label>Tahun<select id="publicWaveYear" aria-label="Pilih tahun data gelombang"><option value="2017" selected>2017</option><option value="2019">2019</option><option value="2021">2021</option><option value="2023">2023</option><option value="2025">2025</option></select></label>
+                    <label>Tanggal<input id="publicWaveDate" type="date" min="2017-01-01" max="2017-12-31" value="2017-01-01" aria-label="Pilih tanggal data gelombang"></label>
+                    <small id="publicWaveStatus" aria-live="polite">Data harian · waktu UTC/GMT.</small>
+                  </div>
+                </div>
               </div></div>
             </section>
             <section class="public-sidebar-section"><div class="public-sidebar-title"><span>Zonasi risiko <small>SIMULASI</small></span><i class="fa-solid fa-triangle-exclamation"></i></div>
@@ -76,11 +85,6 @@
   <script>window.CESIUM_BASE_URL = 'https://cesium.com/downloads/cesiumjs/releases/1.147/Build/Cesium/';</script>
   <script src="https://cesium.com/downloads/cesiumjs/releases/1.147/Build/Cesium/Cesium.js"></script>
   <script src="landing.js"></script>
-  <script src="public-map.js?v=morphology-years-1"></script>
+  <script src="public-map.js?v=wave-direction-1"></script>
 </body>
 </html>
-
-
-
-
-
