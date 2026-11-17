@@ -2,8 +2,12 @@
   "name": "krakatau-watch",
   "version": "1.0.0",
   "private": true,
-  "description": "Krakatau Watch WebGIS and account access server",
+  "description": "Vulcaneos WebGIS and account access server",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "check-db": "node scripts/check-mongo.js"
+  },
+  "dependencies": {
+    "mongodb": "^6.22.0"
   }
 }
