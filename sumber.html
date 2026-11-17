@@ -25,7 +25,7 @@
   <link rel="stylesheet" href="style.css?v=remove-marker-1" />
   <link rel="stylesheet" href="landing-v2.css?v=home-layout-3" />
   <link rel="stylesheet" href="logo.css" />
-  <link rel="stylesheet" href="pages.css?v=sources-2" />
+  <link rel="stylesheet" href="pages.css?v=sources-3" />
   <link rel="stylesheet" href="home-theme.css?v=5" />
 </head>
 <body class="landing-body sources-page">
@@ -40,6 +40,7 @@
         <a href="index.html">Beranda</a>
         <a href="latar-belakang.html">Latar belakang</a>
         <a href="tujuan.html">Tujuan</a>
+        <a href="simulasi.html">Simulasi</a>
         <a href="game.html">Game</a>
         <a href="sumber.html" aria-current="page">Sumber</a>
       </nav>
@@ -115,9 +116,25 @@
         </div>
       </section>
 
+      <section class="sources-section" aria-labelledby="sourcesProvidersTitle">
+        <div class="sources-section-heading">
+          <span class="bg-eyebrow">04 / SUMBER &amp; METODOLOGI</span>
+          <h2 id="sourcesProvidersTitle">Penyedia data dan perangkat analisis</h2>
+        </div>
+        <p class="sources-section-intro">Bagian ini membedakan penyedia basemap, lembaga rujukan, dan perangkat analisis. Layer parameter yang tampil di peta saat ini dimuat dari berkas GeoJSON/JSON proyek; tidak semua sumber berikut dipanggil langsung sebagai layanan live.</p>
+        <div class="sources-grid">
+          <a class="source-tile" href="https://www.usgs.gov/programs/VHP" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-volcano"></i><b>USGS · Volcano Hazards Program</b><span>Rujukan informasi ilmiah dan pemantauan bahaya gunung api. Bukan layanan layer live yang dipanggil langsung oleh peta saat ini.</span></a>
+          <a class="source-tile" href="https://www.arcgis.com/home/item.html?id=10df2279f9684e4a9f6a7f08febac2a9" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-satellite"></i><b>Esri · World Imagery</b><span>Citra satelit yang digunakan sebagai basemap pada peta. Atribusi citra ditampilkan di bagian bawah frame peta.</span></a>
+          <a class="source-tile" href="https://magma.esdm.go.id/" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-mountain-sun"></i><b>PVMBG · MAGMA Indonesia</b><span>Rujukan informasi gunung api dan kebencanaan geologi Indonesia; status pada situs ini bukan feed resmi langsung.</span></a>
+          <a class="source-tile" href="https://earthengine.google.com/" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-globe"></i><b>Google Earth Engine</b><span>Platform komputasi geospasial untuk pengolahan dan analisis citra satelit; bukan basemap yang dimuat langsung oleh peta.</span></a>
+          <a class="source-tile" href="https://www.usgs.gov/centers/pcmsc/science/digital-shoreline-analysis-system-dsas" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-chart-line"></i><b>USGS DSAS</b><span>Perangkat analisis perubahan garis pantai. Data proyek memuat 93 transek EPR/NSM untuk periode 2017–2025.</span></a>
+          <a class="source-tile" href="https://www.ecmwf.int/en/forecasts/dataset/ecmwf-reanalysis-v5" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-water"></i><b>ECMWF · ERA5</b><span>Reanalisis atmosfer dan gelombang. Layer gelombang VULCANEOS saat ini dinonaktifkan sampai tersedia dataset pengganti yang tervalidasi.</span></a>
+        </div>
+      </section>
+
       <section class="sources-section" aria-labelledby="sourcesEducationTitle">
         <div class="sources-section-heading">
-          <span class="bg-eyebrow">04 / EDUKASI &amp; PETA</span>
+          <span class="bg-eyebrow">05 / EDUKASI &amp; PETA</span>
           <h2 id="sourcesEducationTitle">Edukasi kebencanaan dan pemetaan vulkanik</h2>
         </div>
         <div class="sources-grid source-image-grid">
