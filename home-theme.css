@@ -464,6 +464,33 @@
 :root[data-home-theme="night"] .sources-page .source-tile b { color: #edf1f5; }
 :root[data-home-theme="night"] .sources-page .landing-footer > span { color: #aebac5; }
 
+/* Forum diskusi beranda */
+:root[data-home-theme="night"] .home-landing .hm-forum {
+  --f-ink: #edf1f5;
+  --f-soft-ink: #c2cdd8;
+  --f-muted: #9aa9b8;
+  --f-card: #1b2733;
+  --f-line: #354351;
+  --f-rule: #2b3947;
+  --f-hover: #202e3b;
+  --f-active: #23384a;
+  --f-accent: #80aee9;
+  --f-field: #16222e;
+  border-color: #2b3947;
+  background: #17222d;
+}
+:root[data-home-theme="night"] .home-landing .hm-forum-head h2 em { color: #80aee9; }
+:root[data-home-theme="night"] .home-landing .hm-forum-compose,
+:root[data-home-theme="night"] .home-landing .hm-forum-form-foot button {
+  border-color: #80aee9;
+  background: #80aee9;
+  color: #101820;
+}
+:root[data-home-theme="night"] .home-landing .hm-forum-compose:hover { background: #a5c7ec; }
+:root[data-home-theme="night"] .home-landing .hm-forum-form-status[data-tone="error"] { color: #e59a9a; }
+:root[data-home-theme="night"] .home-landing .hm-forum-delete { color: #e59a9a; }
+:root[data-home-theme="night"] .home-landing .hm-forum-placeholder i { color: #80aee9; }
+
 @media (max-width: 1150px) {
   .background-landing .home-theme-toggle,
   .purpose-landing .home-theme-toggle,
