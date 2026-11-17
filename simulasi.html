@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#f4f3ee" />
+  <meta name="description" content="Simulasi ilustratif erupsi Anak Krakatau: atur parameter letusan dan lihat estimasi dampaknya pada lingkungan pesisir dan perairan Selat Sunda." />
+  <title>Simulasi Erupsi | VULCANEOS</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="volcanoes-favicon-32.png?v=2" />
+  <link rel="icon" type="image/png" sizes="512x512" href="volcanoes-favicon.png?v=2" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=remove-marker-1" />
+  <link rel="stylesheet" href="landing-v2.css?v=home-layout-3" />
+  <link rel="stylesheet" href="logo.css" />
+  <link rel="stylesheet" href="pages.css?v=hv-2" />
+  <link rel="stylesheet" href="simulasi.css?v=3" />
+</head>
+<body class="landing-body sim-body">
+<div class="landing-page sim-landing" id="simPage">
+
+  <!-- NAV -->
+  <header class="landing-nav sim-nav">
+    <a class="landing-brand" href="index.html" aria-label="VULCANEOS beranda">
+      <span class="landing-brand-mark"><img src="volcanoes-transparent.png" alt="" /></span>
+      <span><strong>VULCANEOS</strong><small>VOLCANIC &amp; OCEAN INTELLIGENCE</small></span>
+    </a>
+    <nav class="landing-links" aria-label="Navigasi utama">
+      <a href="peta.html">Peta</a>
+      <a href="index.html">Beranda</a>
+      <a href="latar-belakang.html">Latar belakang</a>
+      <a href="tujuan.html">Tujuan</a>
+      <a href="simulasi.html" aria-current="page">Simulasi</a>
+      <a href="game.html">Game</a>
+      <a href="sumber.html">Sumber</a>
+    </nav>
+    <button class="landing-open" type="button" data-enter-webgis>Login Admin <i class="fa-solid fa-arrow-right-to-bracket" aria-hidden="true"></i></button>
+    <button class="landing-menu-toggle" type="button" aria-label="Buka navigasi" aria-expanded="false"><i class="fa-solid fa-bars"></i></button>
+  </header>
+
+  <main class="sim-main">
+
+    <!-- HERO -->
+    <section class="sim-hero" aria-label="Simulasi erupsi Anak Krakatau">
+      <div class="sim-hero-copy">
+        <span class="sim-eyebrow"><i></i> LABORATORIUM SIMULASI · ANAK KRAKATAU</span>
+        <h1>Atur parameter letusan,<br /><em>lihat dampaknya.</em></h1>
+        <p>Ubah skala erupsi, tinggi kolom abu, kecepatan angin, dan kondisi perairan. Setiap perubahan langsung memperbarui visualisasi letusan beserta estimasi dampak lingkungan dan perairan di sekitarnya.</p>
+        <div class="sim-hero-tags">
+          <span><i class="fa-solid fa-sliders"></i> 7 parameter</span>
+          <span><i class="fa-solid fa-water"></i> Dampak perairan</span>
+          <span><i class="fa-solid fa-mountain-sun"></i> Visualisasi letusan</span>
+        </div>
+      </div>
+      <aside class="sim-hero-meta">
+        <div><span>MODEL</span><b>Ilustratif, bukan prakiraan resmi</b></div>
+        <div><span>AREA</span><b>Selat Sunda · 6,10° S / 105,42° E</b></div>
+        <div><span>ACUAN</span><b>Erupsi Anak Krakatau 2018</b></div>
+        <div><span>STATUS</span><b class="sim-live"><i></i> Simulasi aktif</b></div>
+      </aside>
+    </section>
+
+    <!-- WORKSPACE: parameter + panggung -->
+    <section class="sim-workspace" aria-label="Parameter dan visualisasi">
+      <form class="sim-panel" id="simForm" autocomplete="off">
+        <header class="sim-panel-head">
+          <span>PARAMETER MASUKAN</span>
+          <b>01</b>
+        </header>
+
+        <label class="sim-field">
+          <span class="sim-field-top"><b>Skala letusan <em>(VEI)</em></b><output id="veiValue" for="vei">4</output></span>
+          <input id="vei" type="range" min="1" max="6" step="1" value="4" aria-label="Skala letusan VEI" />
+          <span class="sim-field-ends"><span>1 · kecil</span><span>6 · katastrofik</span></span>
+        </label>
+
+        <label class="sim-field">
+          <span class="sim-field-top"><b>Tinggi kolom abu</b><output id="columnValue" for="column">12 km</output></span>
+          <input id="column" type="range" min="1" max="20" step="0.5" value="12" aria-label="Tinggi kolom abu dalam kilometer" />
+          <span class="sim-field-ends"><span>1 km</span><span>20 km</span></span>
+        </label>
+
+        <label class="sim-field">
+          <span class="sim-field-top"><b>Durasi erupsi</b><output id="durationValue" for="duration">6 jam</output></span>
+          <input id="duration" type="range" min="1" max="24" step="1" value="6" aria-label="Durasi erupsi dalam jam" />
+          <span class="sim-field-ends"><span>1 jam</span><span>24 jam</span></span>
+        </label>
+
+        <label class="sim-field">
+          <span class="sim-field-top"><b>Kecepatan angin</b><output id="windValue" for="wind">20 km/jam</output></span>
+          <input id="wind" type="range" min="0" max="80" step="1" value="20" aria-label="Kecepatan angin dalam kilometer per jam" />
+          <span class="sim-field-ends"><span>0</span><span>80 km/jam</span></span>
+        </label>
+
+        <div class="sim-field sim-field-compass">
+          <span class="sim-field-top"><b>Angin bertiup ke arah</b><output id="windDirValue" aria-live="polite">Tenggara</output></span>
+          <div class="sim-compass" role="group" aria-label="Pilih arah tiupan angin">
+            <button type="button" class="sim-dir" data-dir="315" style="--rot:-45deg" aria-pressed="false" aria-label="Barat laut"><i class="fa-solid fa-arrow-up" aria-hidden="true"></i><span>BL</span></button>
+            <button type="button" class="sim-dir" data-dir="0" style="--rot:0deg" aria-pressed="false" aria-label="Utara"><i class="fa-solid fa-arrow-up" aria-hidden="true"></i><span>U</span></button>
+            <button type="button" class="sim-dir" data-dir="45" style="--rot:45deg" aria-pressed="false" aria-label="Timur laut"><i class="fa-solid fa-arrow-up" aria-hidden="true"></i><span>TL</span></button>
+            <button type="button" class="sim-dir" data-dir="270" style="--rot:-90deg" aria-pressed="false" aria-label="Barat"><i class="fa-solid fa-arrow-up" aria-hidden="true"></i><span>B</span></button>
+            <span class="sim-compass-core" aria-hidden="true"><i class="fa-solid fa-arrow-up" id="dirArrow"></i></span>
+            <button type="button" class="sim-dir" data-dir="90" style="--rot:90deg" aria-pressed="false" aria-label="Timur"><i class="fa-solid fa-arrow-up" aria-hidden="true"></i><span>T</span></button>
+            <button type="button" class="sim-dir" data-dir="225" style="--rot:-135deg" aria-pressed="false" aria-label="Barat daya"><i class="fa-solid fa-arrow-up" aria-hidden="true"></i><span>BD</span></button>
+            <button type="button" class="sim-dir" data-dir="180" style="--rot:180deg" aria-pressed="false" aria-label="Selatan"><i class="fa-solid fa-arrow-up" aria-hidden="true"></i><span>S</span></button>
+            <button type="button" class="sim-dir" data-dir="135" style="--rot:135deg" aria-pressed="true" aria-label="Tenggara"><i class="fa-solid fa-arrow-up" aria-hidden="true"></i><span>TG</span></button>
+          </div>
+          <input id="windDir" type="hidden" value="135" />
+          <p class="sim-field-hint">Abu terbawa ke arah yang dipilih. Arah ini kebalikan dari arah datangnya angin yang biasa dilaporkan BMKG.</p>
+        </div>
+
+        <label class="sim-field">
+          <span class="sim-field-top"><b>Kedalaman perairan</b><output id="depthValue" for="depth">50 m</output></span>
+          <input id="depth" type="range" min="10" max="100" step="5" value="50" aria-label="Kedalaman perairan sekitar dalam meter" />
+          <span class="sim-field-ends"><span>10 m</span><span>100 m</span></span>
+        </label>
+
+        <label class="sim-field">
+          <span class="sim-field-top"><b>Suhu permukaan laut</b><output id="sstValue" for="sst">29 °C</output></span>
+          <input id="sst" type="range" min="26" max="32" step="0.5" value="29" aria-label="Suhu permukaan laut dalam derajat Celsius" />
+          <span class="sim-field-ends"><span>26 °C</span><span>32 °C</span></span>
+        </label>
+
+        <label class="sim-switch">
+          <input type="checkbox" id="collapse" checked />
+          <span class="sim-switch-track" aria-hidden="true"><i></i></span>
+          <span class="sim-switch-copy"><b>Longsoran tubuh gunung</b><small>Aktifkan skenario tsunami Selat Sunda</small></span>
+        </label>
+
+        <div class="sim-panel-actions">
+          <button type="button" class="sim-btn sim-btn-primary" id="randomButton"><i class="fa-solid fa-shuffle"></i> Skenario acak</button>
+          <button type="button" class="sim-btn sim-btn-ghost" id="resetButton"><i class="fa-solid fa-rotate-left"></i> Default</button>
+        </div>
+      </form>
+
+      <div class="sim-stage">
+        <div class="sim-canvas">
+          <div class="sim-canvas-head">
+            <span class="sim-canvas-live"><i></i> SIMULASI LETUSAN</span>
+            <span class="sim-canvas-coords">ANAK KRAKATAU · SELAT SUNDA</span>
+            <span class="sim-phase"><i class="fa-solid fa-circle-notch"></i> <b id="scenePhase">Letusan awal</b></span>
+            <button type="button" class="sim-replay" id="replayButton" title="Putar ulang animasi letusan"><i class="fa-solid fa-rotate"></i><span>Putar ulang</span></button>
+          </div>
+
+          <canvas class="sim-scene" id="sceneCanvas" role="img" aria-label="Animasi erupsi Anak Krakatau: kolom abu, lontaran material, aliran piroklastik, dan dampak ke perairan"></canvas>
+
+          <div class="sim-status" id="statusBadge">
+            <span class="sim-status-kicker">STATUS SIMULASI</span>
+            <b id="statusLabel">Awas</b>
+            <small id="statusNote">Radius bahaya 6,1 km</small>
+          </div>
+
+          <div class="sim-canvas-foot">
+            <span><i class="fa-solid fa-wind"></i> Angin <b id="windFoot">20 km/jam · Tenggara</b></span>
+            <span><i class="fa-solid fa-water"></i> Kedalaman <b id="depthFoot">50 m</b></span>
+            <span class="sim-canvas-credit">Ilustrasi skematik, bukan citra sebenarnya</span>
+          </div>
+        </div>
+
+        <div class="sim-readout" aria-label="Ringkasan hasil simulasi">
+          <article class="sim-metric">
+            <span class="sim-metric-label"><i class="fa-solid fa-cloud"></i> Tinggi kolom abu</span>
+            <b id="metricColumn">12,0 <small>km</small></b>
+            <small id="metricColumnNote">VEI 4 · durasi 6 jam</small>
+          </article>
+          <article class="sim-metric">
+            <span class="sim-metric-label"><i class="fa-solid fa-circle-nodes"></i> Luas jatuhan abu</span>
+            <b id="metricAsh">— <small>km²</small></b>
+            <small id="metricAshNote">Memanjang searah angin</small>
+          </article>
+          <article class="sim-metric sim-metric-alert">
+            <span class="sim-metric-label"><i class="fa-solid fa-triangle-exclamation"></i> Radius zona bahaya</span>
+            <b id="metricHazard">— <small>km</small></b>
+            <small id="metricHazardNote">Mengikuti zonasi WebGIS</small>
+          </article>
+          <article class="sim-metric">
+            <span class="sim-metric-label"><i class="fa-solid fa-fire"></i> Jangkauan piroklastik</span>
+            <b id="metricPyro">— <small>km</small></b>
+            <small id="metricPyroNote">Aliran menuju laut</small>
+          </article>
+          <article class="sim-metric">
+            <span class="sim-metric-label"><i class="fa-solid fa-wave-square"></i> Potensi tsunami</span>
+            <b id="metricTsunami">— <small>m</small></b>
+            <small id="metricTsunamiNote">Skenario longsoran</small>
+          </article>
+          <article class="sim-metric">
+            <span class="sim-metric-label"><i class="fa-solid fa-cubes-stacked"></i> Material terlempar</span>
+            <b id="metricEjecta">— <small>juta m³</small></b>
+            <small id="metricEjectaNote">Estimasi volumetrik</small>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- DAMPAK -->
+    <section class="sim-impact" aria-label="Hasil dampak simulasi">
+      <article class="sim-map-card">
+        <header class="sim-card-head">
+          <div><span>PETA DAMPAK · SKEMATIK</span><h2>Sebaran abu dan zonasi bahaya</h2></div>
+          <span class="sim-card-badge" id="mapScaleBadge">Skala dinamis</span>
+        </header>
+        <div class="sim-map-wrap">
+          <svg id="impactMap" viewBox="0 0 480 480" role="img" aria-label="Peta skematik sebaran abu dan zona bahaya di sekitar Anak Krakatau">
+            <defs>
+              <radialGradient id="mapWater" cx="0.5" cy="0.5" r="0.7">
+                <stop offset="0" stop-color="#dbe6e4" /><stop offset="1" stop-color="#c3d4d2" />
+              </radialGradient>
+            </defs>
+            <rect width="480" height="480" fill="url(#mapWater)" />
+            <g id="mapGrid" aria-hidden="true"></g>
+            <g id="mapTurbidity" aria-hidden="true"></g>
+            <g id="mapAsh" aria-hidden="true"></g>
+            <g id="mapRings" aria-hidden="true"></g>
+            <g id="mapIslands" aria-hidden="true"></g>
+            <g id="mapWind" aria-hidden="true"></g>
+            <g id="mapLabels" aria-hidden="true"></g>
+          </svg>
+          <div class="sim-map-legend">
+            <span><i class="sim-dot sim-dot-safe"></i> Normal 0–3 km</span>
+            <span><i class="sim-dot sim-dot-caution"></i> Siaga 3–5 km</span>
+            <span><i class="sim-dot sim-dot-danger"></i> Awas 5–8 km</span>
+            <span><i class="sim-dot sim-dot-ash"></i> Jatuhan abu</span>
+          </div>
+        </div>
+        <footer class="sim-card-foot">
+          <span><i class="fa-solid fa-ruler-combined"></i> Bar skala menyesuaikan luas sebaran</span>
+          <span id="mapDirection">Angin ke Tenggara · abu terbawa ke arah tersebut</span>
+        </footer>
+      </article>
+
+      <article class="sim-marine-card">
+        <header class="sim-card-head">
+          <div><span>DAMPAK PERAIRAN</span><h2>Perubahan parameter laut</h2></div>
+          <span class="sim-card-badge" id="marineBadge">Sedang</span>
+        </header>
+        <div class="sim-bars">
+          <div class="sim-bar-row">
+            <span class="sim-bar-name">Suhu permukaan (SST)</span>
+            <div class="sim-bar-track"><i id="barSst"></i></div>
+            <b id="valSst">—</b>
+          </div>
+          <div class="sim-bar-row">
+            <span class="sim-bar-name">Padatan tersuspensi (TSS)</span>
+            <div class="sim-bar-track"><i id="barTss"></i></div>
+            <b id="valTss">—</b>
+          </div>
+          <div class="sim-bar-row">
+            <span class="sim-bar-name">Klorofil-a</span>
+            <div class="sim-bar-track"><i id="barChl"></i></div>
+            <b id="valChl">—</b>
+          </div>
+          <div class="sim-bar-row">
+            <span class="sim-bar-name">Kekeruhan</span>
+            <div class="sim-bar-track"><i id="barTurb"></i></div>
+            <b id="valTurb">—</b>
+          </div>
+        </div>
+        <div class="sim-marine-note" id="marineNote">
+          <i class="fa-solid fa-circle-info"></i>
+          <p>Nilai merupakan estimasi model ilustratif relatif terhadap kondisi sebelum erupsi.</p>
+        </div>
+      </article>
+
+      <article class="sim-env-card">
+        <header class="sim-card-head">
+          <div><span>DAMPAK LINGKUNGAN</span><h2>Pesisir dan ekosistem</h2></div>
+        </header>
+        <ul class="sim-env-list">
+          <li><span><i class="fa-solid fa-leaf"></i> Vegetasi terlanda</span><b id="envVeg">—</b></li>
+          <li><span><i class="fa-solid fa-water"></i> Perairan terdampak</span><b id="envWater">—</b></li>
+          <li><span><i class="fa-solid fa-arrows-left-right"></i> Perubahan garis pantai</span><b id="envCoast">—</b></li>
+          <li><span><i class="fa-solid fa-fish"></i> Tekanan ekosistem</span><b id="envReef">—</b></li>
+        </ul>
+        <footer class="sim-card-foot">
+          <span><i class="fa-solid fa-flask"></i> Zona bahaya mengikuti kelas 0–8 km pada WebGIS</span>
+        </footer>
+      </article>
+    </section>
+
+    <section class="sim-disclaimer">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      <p><b>Catatan metodologi.</b> Halaman ini adalah media edukasi. Nilai dampak dihitung dari model sederhana yang menghubungkan skala letusan, tinggi kolom, durasi, angin, dan kedalaman perairan. Hasilnya bukan prakiraan resmi dan tidak dapat dipakai sebagai dasar evakuasi. Ikuti informasi resmi PVMBG, BMKG, dan BNPB.</p>
+      <a class="sim-text-link" href="sumber.html">Lihat sumber data <i class="fa-solid fa-arrow-right"></i></a>
+    </section>
+
+  </main>
+
+  <footer class="landing-footer home-footer">
+    <a class="landing-brand" href="index.html">
+      <span class="landing-brand-mark"><img src="volcanoes-transparent.png" alt="" /></span>
+      <span><strong>VULCANEOS</strong><small>VOLCANIC &amp; OCEAN INTELLIGENCE</small></span>
+    </a>
+    <span>Portal pemantauan lingkungan pesisir · Selat Sunda</span>
+    <span>WEBGIS / 01.0</span>
+  </footer>
+
+</div>
+<script src="landing.js"></script>
+<script src="simulasi-scene.js?v=1"></script>
+<script src="simulasi.js?v=3"></script>
+</body>
+</html>
