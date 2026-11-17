@@ -217,17 +217,91 @@ $$('[data-logout], #logoutButton').forEach((button) => button.addEventListener('
 const profileButton = $('#profileButton');
 const profileMenu = $('#profileMenu');
 let currentSession = null;
+
+const formatMemberSince = (value) => {
+  const date = new Date(value);
+  if (!value || Number.isNaN(date.getTime())) return '—';
+  return new Intl.DateTimeFormat('id-ID', { month: 'short', year: 'numeric' }).format(date);
+};
+
+function renderProfile() {
+  const profile = currentSession?.profile;
+  if (!profile) return;
+  const name = profile.name || currentSession.user;
+  $$('.profile-popover-name, .user b').forEach((element) => { element.textContent = name; });
+  $$('.profile-popover-institution, .user small').forEach((element) => { element.textContent = profile.institution || 'Pengguna VULCANEOS'; });
+  const avatar = $('#profileAvatar');
+  if (avatar) avatar.textContent = String(name).trim().charAt(0).toUpperCase() || '?';
+  const badge = $('#profileRoleBadge');
+  if (badge) badge.textContent = currentSession.role === 'admin' ? 'ADMINISTRATOR' : 'PENGGUNA';
+  const bio = $('#profileBio');
+  if (bio) bio.textContent = profile.bio || 'Belum ada bio profil.';
+  const joined = $('#profileJoined');
+  if (joined) joined.textContent = formatMemberSince(profile.joinedAt);
+  const threads = $('#profileThreadCount');
+  if (threads) threads.textContent = profile.threadCount ?? 0;
+  const replies = $('#profileReplyCount');
+  if (replies) replies.textContent = profile.replyCount ?? 0;
+  $('#adminReportTools').hidden = currentSession.role !== 'admin';
+  const form = $('#profileEditForm');
+  if (form) {
+    form.elements.name.value = name;
+    form.elements.institution.value = profile.institution || '';
+    form.elements.bio.value = profile.bio || '';
+  }
+}
+
 fetch('/api/me', { credentials: 'same-origin' })
   .then((response) => response.ok ? response.json() : null)
   .then((session) => {
     if (!session?.authenticated || !session.profile) return;
     currentSession = session;
-    const { name, institution } = session.profile;
-    $$('.profile-popover-name, .user b').forEach((element) => { element.textContent = name; });
-    $$('.profile-popover small, .user small').forEach((element) => { element.textContent = institution; });
-    $('#adminReportTools').hidden = session.role !== 'admin';
+    renderProfile();
   })
   .catch(() => {});
+
+const profileEditToggle = $('#profileEditToggle');
+const profileEditForm = $('#profileEditForm');
+profileEditToggle?.addEventListener('click', () => {
+  if (!profileEditForm) return;
+  profileEditForm.hidden = !profileEditForm.hidden;
+  profileEditToggle.setAttribute('aria-expanded', String(!profileEditForm.hidden));
+  if (!profileEditForm.hidden) profileEditForm.elements.name?.focus();
+});
+
+profileEditForm?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const status = $('#profileEditStatus');
+  const submit = profileEditForm.querySelector('[type="submit"]');
+  status.removeAttribute('data-tone');
+  status.textContent = 'Menyimpan…';
+  submit.disabled = true;
+  try {
+    const response = await fetch('/api/profile', {
+      method: 'PUT',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: profileEditForm.elements.name.value,
+        institution: profileEditForm.elements.institution.value,
+        bio: profileEditForm.elements.bio.value,
+      }),
+    });
+    const raw = await response.text();
+    let payload = {};
+    try { payload = raw ? JSON.parse(raw) : {}; } catch { throw new Error('Server profil mengirim respons yang tidak valid.'); }
+    if (!response.ok) throw new Error(payload.error || 'Profil gagal disimpan.');
+    currentSession = { ...currentSession, profile: { ...currentSession.profile, ...payload.profile } };
+    renderProfile();
+    status.textContent = 'Profil tersimpan.';
+    toast('Profil diperbarui.');
+  } catch (error) {
+    status.dataset.tone = 'error';
+    status.textContent = error.message;
+  } finally {
+    submit.disabled = false;
+  }
+});
 
 function buildAdminReport() {
   const generatedAt = new Date().toISOString();
