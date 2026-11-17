@@ -44,6 +44,7 @@
       <a href="simulasi.html">Simulasi</a>
       <a href="game.html">Game</a>
       <a href="sumber.html">Sumber</a>
+      <a href="#forum">Forum</a>
     </nav>
     <button class="home-theme-toggle" type="button" data-home-theme-toggle aria-pressed="false" aria-label="Aktifkan Night mode">
       <i class="fa-regular fa-moon" aria-hidden="true"></i><span>Night mode</span>
@@ -279,7 +280,73 @@
     </section>
 
     <!-- ═══════════════════════════════
-         6. CTA STRIP
+         6. FORUM DISKUSI
+    ════════════════════════════════════ -->
+    <section class="hm-forum" id="forum">
+      <div class="hm-forum-inner">
+        <div class="hm-forum-head" data-reveal>
+          <div>
+            <span class="hm-eyebrow"><i></i> RUANG DISKUSI</span>
+            <h2>Forum <em>diskusi.</em></h2>
+            <p>Tanyakan, tanggapi, dan bahas dinamika pesisir Anak Krakatau bersama pengguna lain.</p>
+          </div>
+          <button class="hm-forum-compose" id="forumComposeToggle" type="button" aria-expanded="false" aria-controls="forumThreadForm">
+            Mulai diskusi <i class="fa-solid fa-plus" aria-hidden="true"></i>
+          </button>
+        </div>
+
+        <p class="hm-forum-note" id="forumAuthNote" role="status" aria-live="polite"></p>
+
+        <form class="hm-forum-form" id="forumThreadForm" hidden>
+          <label for="forumThreadTitle">Judul diskusi</label>
+          <input id="forumThreadTitle" name="title" type="text" minlength="5" maxlength="140" placeholder="Contoh: Dampak erupsi 2018 terhadap garis pantai" required />
+          <label for="forumThreadBody">Isi diskusi</label>
+          <textarea id="forumThreadBody" name="body" rows="4" minlength="5" maxlength="5000" placeholder="Tulis pertanyaan atau pendapat Anda…" required></textarea>
+          <div class="hm-forum-form-foot">
+            <span class="hm-forum-form-status" id="forumThreadStatus"></span>
+            <button type="submit">Kirim diskusi <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+          </div>
+        </form>
+
+        <div class="hm-forum-layout">
+          <div class="hm-forum-panel">
+            <div class="hm-forum-panel-head">
+              <b>Diskusi terbaru</b>
+              <span id="forumThreadCount">Memuat…</span>
+            </div>
+            <div class="hm-forum-list" id="forumThreadList" aria-live="polite">
+              <p class="hm-forum-empty">Memuat diskusi…</p>
+            </div>
+          </div>
+          <article class="hm-forum-detail" id="forumThreadDetail" hidden aria-live="polite">
+            <button class="hm-forum-back" id="forumBackButton" type="button"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Semua diskusi</button>
+            <header class="hm-forum-detail-head">
+              <span class="hm-forum-meta" id="forumDetailMeta"></span>
+              <h3 id="forumDetailTitle"></h3>
+            </header>
+            <div class="hm-forum-body" id="forumDetailBody"></div>
+            <div class="hm-forum-replies" id="forumReplies"></div>
+            <form class="hm-forum-reply-form" id="forumReplyForm" hidden>
+              <label for="forumReplyBody">Tulis balasan</label>
+              <textarea id="forumReplyBody" name="body" rows="3" minlength="2" maxlength="3000" placeholder="Tanggapi diskusi ini…" required></textarea>
+              <div class="hm-forum-form-foot">
+                <span class="hm-forum-form-status" id="forumReplyStatus"></span>
+                <button type="submit">Kirim balasan <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+              </div>
+            </form>
+            <p class="hm-forum-login" id="forumDetailAuthNote"></p>
+          </article>
+          <div class="hm-forum-placeholder" id="forumPlaceholder">
+            <i class="fa-regular fa-comments" aria-hidden="true"></i>
+            <b>Pilih diskusi</b>
+            <span>Detail dan balasan akan tampil di sini.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════
+         7. CTA STRIP
     ════════════════════════════════════ -->
     <section class="hm-cta">
       <div class="hm-cta-inner">
@@ -308,5 +375,6 @@
 
 </div>
 <script src="landing.js"></script>
+<script src="forum.js"></script>
 </body>
 </html>
