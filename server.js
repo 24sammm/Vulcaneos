@@ -1,8 +1,6 @@
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
-const crypto = require('node:crypto');
-const { profileFor, isAdmin } = require('./lib/auth');
 
 const ROOT = __dirname;
 const JSON_DIR = path.join(ROOT, 'JSON');
@@ -33,6 +31,16 @@ function loadEnvFile() {
 
 loadEnvFile();
 
+const { getSession, isAdmin } = require('./lib/auth');
+const API_ROUTES = {
+  '/api/login': require('./api/login'),
+  '/api/logout': require('./api/logout'),
+  '/api/me': require('./api/me'),
+  '/api/session': require('./api/me'),
+  '/api/profile': require('./api/profile'),
+  '/api/forum': require('./api/forum'),
+};
+
 const AUTH_USERS = String(process.env.AUTH_USERS || `${process.env.AUTH_ID || ''}:${process.env.AUTH_PASSWORD || ''}`)
   .split(',').map((item) => {
     const separator = item.indexOf(':');
@@ -41,96 +49,19 @@ const AUTH_USERS = String(process.env.AUTH_USERS || `${process.env.AUTH_ID || ''
 const SESSION_SECRET = process.env.AUTH_SESSION_SECRET || process.env.SESSION_SECRET;
 const PORT = Number(process.env.PORT || 3000);
 const HOST = process.env.HOST || '0.0.0.0';
-const SESSION_TTL_SECONDS = Math.max(300, Number(process.env.SESSION_TTL_SECONDS || 28800));
-const REMEMBER_TTL_SECONDS = Math.max(SESSION_TTL_SECONDS, Number(process.env.REMEMBER_TTL_SECONDS || 2592000));
-const COOKIE_NAME = 'kw_session';
 
 if (!AUTH_USERS.length || !SESSION_SECRET || SESSION_SECRET.length < 32) {
   throw new Error('AUTH_USERS and a 32-character AUTH_SESSION_SECRET are required in .env.');
 }
 
-const loginAttempts = new Map();
-const allowedRootFiles = new Set(['index.html', 'peta.html', 'tentang.html', 'login.html', 'register.html', 'webgis.html', 'misi.html', 'game.html', 'sumber.html', 'latar-belakang.html', 'tujuan.html', 'simulasi.html', 'krakatau.jpg', 'krakatauanak.jpg', 'petadatar.jpg', 'petadasar1.jpg', 'backgroundphotobooth.jpg', 'style.css', 'landing-v2.css', 'pages.css', 'home-theme.css', 'public-map.css', 'public-map.js', 'download-modal.css', 'logo.css', 'volcanoes-transparent.png', 'volcanoes-favicon.png', 'volcanoes-favicon-32.png', 'photoboothtemp1.jpeg', 'photoboothtemp2.jpeg', 'edukasi1.jpeg', 'edukasi2.jpeg', 'edukasi3.jpeg', 'pemetaanVulkanik.jpeg', 'app.js', 'auth-client.js', 'landing.js', 'photo-booth.css', 'photo-booth.js', 'game.css', 'game.js', 'simulasi.css', 'simulasi.js', 'simulasi-scene.js']);
+const allowedRootFiles = new Set(['index.html', 'peta.html', 'tentang.html', 'login.html', 'register.html', 'webgis.html', 'misi.html', 'game.html', 'sumber.html', 'latar-belakang.html', 'tujuan.html', 'simulasi.html', 'krakatau.jpg', 'krakatauanak.jpg', 'petadatar.jpg', 'petadasar1.jpg', 'backgroundphotobooth.jpg', 'style.css', 'landing-v2.css', 'pages.css', 'home-theme.css', 'public-map.css', 'public-map.js', 'download-modal.css', 'logo.css', 'volcanoes-transparent.png', 'volcanoes-favicon.png', 'volcanoes-favicon-32.png', 'photoboothtemp1.jpeg', 'photoboothtemp2.jpeg', 'edukasi1.jpeg', 'edukasi2.jpeg', 'edukasi3.jpeg', 'pemetaanVulkanik.jpeg', 'app.js', 'auth-client.js', 'landing.js', 'forum.js', 'photo-booth.css', 'photo-booth.js', 'game.css', 'game.js', 'simulasi.css', 'simulasi.js', 'simulasi-scene.js']);
 
 function jsonResponse(response, status, body, extraHeaders = {}) {
   response.writeHead(status, { 'Content-Type': MIME_TYPES['.json'], 'Cache-Control': 'no-store', ...extraHeaders });
   response.end(JSON.stringify(body));
 }
 
-function constantTimeMatch(value, expected) {
-  const actualDigest = crypto.createHash('sha256').update(String(value)).digest();
-  const expectedDigest = crypto.createHash('sha256').update(String(expected)).digest();
-  return crypto.timingSafeEqual(actualDigest, expectedDigest);
-}
-
-function signatureFor(payload) {
-  return crypto.createHmac('sha256', SESSION_SECRET).update(payload).digest('base64url');
-}
-
-function makeSessionCookie(secure, ttl, userId) {
-  const payload = Buffer.from(JSON.stringify({ sub: userId, exp: Math.floor(Date.now() / 1000) + ttl })).toString('base64url');
-  const token = `${payload}.${signatureFor(payload)}`;
-  return `${COOKIE_NAME}=${token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${ttl}${secure ? '; Secure' : ''}`;
-}
-
-function isSecureRequest(request) {
-  return Boolean(request.socket.encrypted) || request.headers['x-forwarded-proto'] === 'https';
-}
-
-function sessionCookie(request, clear = false, ttl = SESSION_TTL_SECONDS, userId = AUTH_USERS[0]?.id) {
-  const secure = process.env.NODE_ENV === 'production' || isSecureRequest(request);
-  return clear
-    ? `${COOKIE_NAME}=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0${secure ? '; Secure' : ''}`
-    : makeSessionCookie(secure, ttl, userId);
-}
-
-function readSession(request) {
-  const cookieHeader = request.headers.cookie || '';
-  const token = cookieHeader.split(';').map((part) => part.trim()).find((part) => part.startsWith(`${COOKIE_NAME}=`))?.slice(COOKIE_NAME.length + 1);
-  if (!token) return null;
-  const [payload, suppliedSignature, extra] = token.split('.');
-  if (!payload || !suppliedSignature || extra) return null;
-  const expectedSignature = signatureFor(payload);
-  const supplied = Buffer.from(suppliedSignature, 'base64url');
-  const expected = Buffer.from(expectedSignature, 'base64url');
-  if (supplied.length !== expected.length || !crypto.timingSafeEqual(supplied, expected)) return null;
-  try {
-    const session = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
-    if (!AUTH_USERS.some((user) => user.id === session.sub) || !Number.isFinite(session.exp) || session.exp <= Date.now() / 1000) return null;
-    return session;
-  } catch {
-    return null;
-  }
-}
-
-function requestIp(request) {
-  return request.socket.remoteAddress || 'unknown';
-}
-
-function canAttemptLogin(request) {
-  const now = Date.now();
-  const key = requestIp(request);
-  const entry = loginAttempts.get(key);
-  if (!entry || now - entry.startedAt > 15 * 60 * 1000) {
-    loginAttempts.set(key, { startedAt: now, count: 0 });
-    return true;
-  }
-  return entry.count < 10;
-}
-
-function recordFailedLogin(request) {
-  const now = Date.now();
-  const key = requestIp(request);
-  const entry = loginAttempts.get(key);
-  if (!entry || now - entry.startedAt > 15 * 60 * 1000) loginAttempts.set(key, { startedAt: now, count: 1 });
-  else entry.count += 1;
-}
-
-function clearFailedLogins(request) {
-  loginAttempts.delete(requestIp(request));
-}
-
-function readJsonBody(request, limit = 8192) {
+function readJsonBody(request, limit = 24000) {
   return new Promise((resolve, reject) => {
     let body = '';
     request.setEncoding('utf8');
@@ -175,17 +106,6 @@ const server = http.createServer(async (request, response) => {
     return;
   }
 
-  if (request.method === 'GET' && (pathname === '/api/session' || pathname === '/api/me')) {
-    const session = readSession(request);
-    jsonResponse(response, 200, {
-      authenticated: Boolean(session),
-      user: session ? session.sub : null,
-      profile: session ? profileFor(session.sub) : null,
-      role: session ? (isAdmin(session.sub) ? 'admin' : 'user') : null,
-    });
-    return;
-  }
-
   if (request.method === 'GET' && pathname === '/api/access-request') {
     const adminEmail = process.env.ADMIN_EMAIL;
     if (!adminEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(adminEmail)) {
@@ -196,42 +116,25 @@ const server = http.createServer(async (request, response) => {
     return;
   }
 
-  if (request.method === 'POST' && pathname === '/api/login') {
-    const origin = request.headers.origin;
-    if (origin && new URL(origin).host !== request.headers.host) {
-      jsonResponse(response, 403, { error: 'Permintaan tidak diizinkan.' });
-      return;
-    }
-    if (!canAttemptLogin(request)) {
-      jsonResponse(response, 429, { error: 'Terlalu banyak percobaan. Coba lagi dalam 15 menit.' });
-      return;
-    }
-    try {
-      const body = await readJsonBody(request);
-      const username = typeof body.username === 'string' ? body.username : '';
-      const password = typeof body.password === 'string' ? body.password : '';
-      const user = AUTH_USERS.find((candidate) => constantTimeMatch(username, candidate.id) && constantTimeMatch(password, candidate.password));
-      if (!user) {
-        recordFailedLogin(request);
-        jsonResponse(response, 401, { error: 'ID pengguna atau kata sandi tidak sesuai.' });
+  const apiHandler = API_ROUTES[pathname];
+  if (apiHandler) {
+    if (request.method !== 'GET' && request.method !== 'HEAD') {
+      try {
+        request.body = await readJsonBody(request);
+      } catch (error) {
+        jsonResponse(response, error.message === 'Invalid JSON.' ? 400 : 413, {
+          error: error.message === 'Invalid JSON.' ? 'Permintaan tidak valid.' : 'Permintaan terlalu besar.',
+        });
         return;
       }
-      clearFailedLogins(request);
-      const ttl = body.remember === true ? REMEMBER_TTL_SECONDS : SESSION_TTL_SECONDS;
-      jsonResponse(response, 200, { authenticated: true, role: isAdmin(user.id) ? 'admin' : 'user' }, { 'Set-Cookie': sessionCookie(request, false, ttl, user.id) });
-    } catch (error) {
-      jsonResponse(response, error.message === 'Invalid JSON.' ? 400 : 413, { error: 'Permintaan masuk tidak valid.' });
     }
-    return;
-  }
-
-  if (request.method === 'POST' && pathname === '/api/logout') {
-    jsonResponse(response, 200, { authenticated: false }, { 'Set-Cookie': sessionCookie(request, true) });
-    return;
-  }
-
-  if (request.method === 'GET' && pathname === '/api/register') {
-    jsonResponse(response, 403, { error: 'Pendaftaran mandiri belum aktif.' });
+    try {
+      await apiHandler(request, response);
+    } catch (error) {
+      console.error(`API ${pathname} failed:`, error.message);
+      if (!response.headersSent) jsonResponse(response, 500, { error: 'Permintaan tidak dapat diproses.' });
+      else response.end();
+    }
     return;
   }
 
@@ -242,7 +145,7 @@ const server = http.createServer(async (request, response) => {
   }
 
   if (pathname === '/webgis.html') {
-    const session = readSession(request);
+    const session = getSession(request);
     if (!session || !isAdmin(session.sub)) {
       response.writeHead(302, { Location: session ? '/peta.html' : '/login.html', 'Cache-Control': 'no-store' });
       response.end();
@@ -283,5 +186,5 @@ const server = http.createServer(async (request, response) => {
 });
 
 server.listen(PORT, HOST, () => {
-  process.stdout.write(`Krakatau Watch listening on ${HOST}:${PORT} (local: http://localhost:${PORT})\n`);
+  process.stdout.write(`Vulcaneos listening on ${HOST}:${PORT} (local: http://localhost:${PORT})\n`);
 });
