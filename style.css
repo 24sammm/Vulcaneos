@@ -205,6 +205,7 @@ body,.app-shell{background:var(--bg)}.app-shell{background:linear-gradient(90deg
 
 .info-reopen{display:none;position:absolute;z-index:5;right:12px;bottom:56px;align-items:center;gap:7px;padding:8px 11px;border:1px solid #466172;border-radius:5px;background:#0b2235e8;color:#d8e8ec;font-size:10px;box-shadow:0 3px 12px #00131b55}.info-reopen:hover{border-color:#65c6c8;color:#70d6d4}.map-section.info-hidden .info-reopen{display:inline-flex}
 .info-panel{display:flex;flex-direction:column}.info-head{flex:0 0 45px}.info-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain}.info-body::-webkit-scrollbar{width:5px}.info-body::-webkit-scrollbar-thumb{border-radius:5px;background:#627b86}:root[data-theme=light] .info-reopen{background:#f5f7f5ed;border-color:#aebfba;color:#344b48}:root[data-theme=light] .info-reopen:hover{border-color:#56877a;color:#315e53}
+#adminUsersNav[hidden] { display: none !important; }
 .location-info>div{display:grid;grid-template-columns:minmax(80px,.9fr) minmax(0,1.1fr);align-items:start;gap:8px}
 .location-info>div span,.location-info>div b{min-width:0}
 .location-info>div b{text-align:right;overflow-wrap:anywhere;line-height:1.45}
@@ -300,3 +301,4 @@ body,.app-shell{background:var(--bg)}.app-shell{background:linear-gradient(90deg
 :root[data-theme=light] .profile-stats dd{color:#263b37}
 :root[data-theme=light] .profile-edit-toggle,:root[data-theme=light] .profile-edit-form input,:root[data-theme=light] .profile-edit-form textarea{background:#f4f7f5;color:#263b37}
 :root[data-theme=light] .profile-edit-form button[type=submit]{background:#2f6a5c;border-color:#2f6a5c;color:#fff}
+.nav-item[hidden]{display:none!important}
