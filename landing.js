@@ -37,6 +37,9 @@ function renderHomeProfile() {
   document.querySelector('#homeProfileName').textContent = name;
   document.querySelector('#homeProfileUsername').textContent = `@${homeSession.user}`;
   document.querySelector('#homeProfileRole').textContent = homeSession.role === 'admin' ? 'ADMINISTRATOR' : 'PENGGUNA';
+  const isAdmin = homeSession.role === 'admin';
+  document.querySelector('#homeAdminUsersLink').hidden = !isAdmin;
+  document.querySelector('#homeAdminWebgisLink').hidden = !isAdmin;
   if (homeProfileEditForm) {
     homeProfileEditForm.elements.name.value = name;
     homeProfileEditForm.elements.institution.value = homeSession.profile.institution || '';
