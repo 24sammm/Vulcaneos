@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#071522" />
+  <title>Kelola akun pengguna · Volcaneos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="admin-users.css?v=1" />
+</head>
+<body>
+  <main class="admin-users-page">
+    <header class="admin-users-topbar">
+      <a class="admin-users-brand" href="webgis.html">
+        <span><i class="fa-solid fa-mountain-sun" aria-hidden="true"></i></span>
+        <span><strong>VOLCANEOS</strong><small>ADMINISTRASI PENGGUNA</small></span>
+      </a>
+      <nav aria-label="Navigasi admin">
+        <a href="index.html#forum"><i class="fa-regular fa-comments" aria-hidden="true"></i> Forum</a>
+        <a href="webgis.html"><i class="fa-solid fa-map" aria-hidden="true"></i> Kembali ke WebGIS</a>
+      </nav>
+    </header>
+
+    <section class="admin-users-content">
+      <div class="admin-users-heading">
+        <div>
+          <span class="admin-users-eyebrow"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> PANEL ADMIN</span>
+          <h1>Akun pengguna</h1>
+          <p>Tinjau akun yang dibuat melalui registrasi. Data kata sandi tidak ditampilkan.</p>
+        </div>
+        <div class="admin-users-count"><strong id="userCount">—</strong><span>akun terdaftar</span></div>
+      </div>
+
+      <section class="admin-users-card" aria-labelledby="userListTitle">
+        <div class="admin-users-toolbar">
+          <div>
+            <h2 id="userListTitle">Daftar registrasi</h2>
+            <p>Konten forum tetap ada dan nama penulisnya dianonimkan jika akun dihapus.</p>
+          </div>
+          <div class="admin-users-tools">
+            <label class="admin-users-search">
+              <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+              <input id="userSearch" type="search" placeholder="Cari nama, username, email…" autocomplete="off" />
+            </label>
+            <button class="admin-users-refresh" id="refreshUsers" type="button" aria-label="Muat ulang daftar">
+              <i class="fa-solid fa-rotate" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+        <p class="admin-users-status" id="userStatus" role="status" aria-live="polite">Memuat daftar akun…</p>
+        <div class="admin-users-table-wrap">
+          <table>
+            <thead>
+              <tr><th>Pengguna</th><th>Email</th><th>Instansi</th><th>Terdaftar</th><th><span class="sr-only">Tindakan</span></th></tr>
+            </thead>
+            <tbody id="userRows"></tbody>
+          </table>
+          <div class="admin-users-empty" id="userEmpty" hidden>
+            <i class="fa-regular fa-folder-open" aria-hidden="true"></i>
+            <strong>Tidak ada akun yang cocok</strong>
+            <span>Ubah kata pencarian atau muat ulang daftar.</span>
+          </div>
+        </div>
+      </section>
+      <p class="admin-users-footnote"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Akun admin dan akun yang dikelola melalui environment tidak muncul di daftar ini dan tidak dapat dihapus dari sini.</p>
+    </section>
+  </main>
+  <script src="admin-users.js?v=1"></script>
+</body>
+</html>
