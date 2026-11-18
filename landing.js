@@ -20,6 +20,58 @@ document.querySelectorAll('[data-enter-webgis]').forEach((button) => {
   button.addEventListener('click', () => window.location.assign('login.html'));
 });
 
+const homeAccount = document.querySelector('#homeAccount');
+const homeLoginButton = document.querySelector('#homeLoginButton');
+const homeProfileButton = document.querySelector('#homeProfileButton');
+const homeProfileMenu = document.querySelector('#homeProfileMenu');
+const homeLogoutButton = document.querySelector('#homeLogoutButton');
+
+fetch('/api/me', { credentials: 'same-origin' })
+  .then((response) => response.ok ? response.json() : null)
+  .then((session) => {
+    if (!session?.authenticated || !session.profile || !homeAccount) return;
+    const name = session.profile.name || session.user;
+    document.querySelector('#homeProfileName').textContent = name;
+    document.querySelector('#homeProfileUsername').textContent = `@${session.user}`;
+    document.querySelector('#homeProfileRole').textContent = session.role === 'admin' ? 'ADMINISTRATOR' : 'PENGGUNA';
+    homeAccount.hidden = false;
+    if (homeLoginButton) homeLoginButton.hidden = true;
+  })
+  .catch(() => {});
+
+homeProfileButton?.addEventListener('click', () => {
+  const isOpen = homeProfileMenu.hidden;
+  homeProfileMenu.hidden = !isOpen;
+  homeProfileButton.setAttribute('aria-expanded', String(isOpen));
+});
+
+document.addEventListener('click', (event) => {
+  if (!event.target.closest('.home-account') && homeProfileMenu && !homeProfileMenu.hidden) {
+    homeProfileMenu.hidden = true;
+    homeProfileButton?.setAttribute('aria-expanded', 'false');
+  }
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && homeProfileMenu && !homeProfileMenu.hidden) {
+    homeProfileMenu.hidden = true;
+    homeProfileButton?.setAttribute('aria-expanded', 'false');
+    homeProfileButton?.focus();
+  }
+});
+
+homeLogoutButton?.addEventListener('click', async () => {
+  homeLogoutButton.disabled = true;
+  try {
+    const response = await fetch('/api/logout', { method: 'POST', credentials: 'same-origin' });
+    if (!response.ok) throw new Error('Logout gagal.');
+    window.location.assign('index.html');
+  } catch {
+    homeLogoutButton.disabled = false;
+    window.alert('Tidak dapat menghubungi server autentikasi. Coba lagi.');
+  }
+});
+
 const homeThemeToggle = document.querySelector('[data-home-theme-toggle]');
 if (homeThemeToggle) {
   const themeRoot = document.documentElement;
