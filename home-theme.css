@@ -501,7 +501,7 @@
 :root[data-home-theme="night"] .home-profile-menu > button { border-color: #354351; }
 
 #homeAccount { position: relative; z-index: 35; display: flex; flex: 0 0 auto; align-items: center; }
-#homeAccount[hidden], #homeProfileMenu[hidden] { display: none !important; }
+#homeAccount[hidden], #homeProfileMenu[hidden], #homeProfileMenu > a[hidden] { display: none !important; }
 #homeProfileButton { display: grid; width: 38px; height: 38px; padding: 3px; place-items: center; border: 1px solid #d8e0e4; border-radius: 50%; background: #f4f7f4; color: #315d52; cursor: pointer; transition: border-color .18s, box-shadow .18s, transform .18s; }
 #homeProfileButton:hover, #homeProfileButton[aria-expanded="true"] { transform: translateY(-1px); border-color: #86a79a; box-shadow: 0 0 0 3px #315d5214; }
 .home-profile-trigger-avatar { display: grid; width: 30px; height: 30px; place-items: center; border-radius: 50%; background: #315d52; color: #fff; font: 700 12px var(--v-sans); }
