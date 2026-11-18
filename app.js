@@ -251,12 +251,14 @@ function renderProfile() {
   }
 }
 
+const adminUsersNav = $('#adminUsersNav');
 fetch('/api/me', { credentials: 'same-origin' })
   .then((response) => response.ok ? response.json() : null)
   .then((session) => {
     if (!session?.authenticated || !session.profile) return;
     currentSession = session;
     renderProfile();
+    if (adminUsersNav) adminUsersNav.hidden = session.role !== 'admin';
   })
   .catch(() => {});
 
