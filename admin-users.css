@@ -65,6 +65,37 @@ tbody tr:hover { background: #ffffff05; }
 .admin-users-empty strong { color: #d3e0e5; }
 .admin-users-footnote { display: flex; align-items: flex-start; gap: 8px; margin: 15px 2px 0; color: #8299a7; font-size: 9px; line-height: 1.6; }
 .admin-users-footnote i { margin-top: 2px; color: #77a6a4; }
+.admin-notification-card { margin-bottom: 18px; }
+.admin-notification-heading { padding: 18px 20px 0; }
+.admin-notification-heading h2 { margin: 0 0 5px; font: 700 14px Manrope, sans-serif; }
+.admin-notification-heading h2 i { margin-right: 6px; color: var(--admin-accent); }
+.admin-notification-heading p { margin: 0; color: var(--admin-muted); font-size: 9px; line-height: 1.6; }
+#adminNotificationForm { padding: 16px 20px 18px; }
+.admin-notification-fields { display: grid; gap: 12px; }
+.admin-notification-fields label { display: grid; gap: 6px; color: #a9bdc8; font-size: 9px; font-weight: 700; }
+.admin-notification-fields input, .admin-notification-fields textarea { width: 100%; padding: 9px 10px; border: 1px solid #2b4a5d; border-radius: 6px; outline: 0; background: #091b29; color: var(--admin-text); font-size: 10px; font-weight: 400; }
+.admin-notification-fields textarea { resize: vertical; line-height: 1.55; }
+.admin-notification-fields input:focus, .admin-notification-fields textarea:focus { border-color: #438d99; box-shadow: 0 0 0 3px #4cc4cc14; }
+.admin-notification-audience { margin: 14px 0 0; padding: 10px 12px; display: flex; flex-wrap: wrap; gap: 16px; border: 1px solid var(--admin-border); border-radius: 6px; }
+.admin-notification-audience legend { padding: 0 5px; color: #a9bdc8; font-size: 9px; font-weight: 700; }
+.admin-notification-audience label { display: inline-flex; align-items: center; gap: 6px; color: #c8d6dd; font-size: 9px; }
+.admin-notification-audience input { accent-color: var(--admin-accent); }
+.admin-notification-recipient-picker { margin-top: 10px; padding: 10px; display: grid; gap: 8px; border: 1px solid var(--admin-border); border-radius: 6px; background: #091b29; }
+.admin-notification-recipient-picker[hidden] { display: none !important; }
+.admin-notification-recipient-toolbar { display: flex; align-items: center; gap: 10px; }
+.admin-notification-recipient-toolbar .admin-users-search { flex: 1; width: auto; }
+.admin-notification-recipient-toolbar > span { flex: 0 0 auto; color: var(--admin-muted); font-size: 8px; }
+.admin-notification-recipient-list { max-height: 180px; overflow: auto; }
+.admin-notification-recipient { min-height: 34px; padding: 6px 8px; display: flex; align-items: center; gap: 8px; border-radius: 4px; color: #c8d6dd; font-size: 9px; cursor: pointer; }
+.admin-notification-recipient:hover { background: #ffffff08; }
+.admin-notification-recipient input { accent-color: var(--admin-accent); }
+.admin-notification-recipient-empty { display: block; padding: 10px; color: var(--admin-muted); font-size: 9px; }
+.admin-notification-footer { margin-top: 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.admin-notification-footer p { margin: 0; color: #91c9a8; font-size: 9px; line-height: 1.5; }
+.admin-notification-footer p[data-tone="error"] { color: var(--admin-red); }
+.admin-notification-footer button { min-height: 36px; padding: 0 12px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 1px solid #397f83; border-radius: 6px; background: #1c5359; color: #dcf4f2; font-size: 9px; font-weight: 700; white-space: nowrap; }
+.admin-notification-footer button:hover { border-color: var(--admin-accent); background: #24666b; }
+.admin-notification-footer button:disabled { opacity: .6; cursor: wait; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 
 @media (max-width: 700px) {
@@ -81,5 +112,9 @@ tbody tr:hover { background: #ffffff05; }
   .admin-users-tools, .admin-users-search { width: 100%; }
   .admin-users-refresh { flex: 0 0 36px; }
   .admin-users-status { padding-left: 16px; }
+  .admin-notification-heading { padding: 16px 16px 0; }
+  #adminNotificationForm { padding: 14px 16px 16px; }
+  .admin-notification-footer { align-items: stretch; flex-direction: column; }
+  .admin-notification-footer button { width: 100%; }
   table { min-width: 690px; }
 }
