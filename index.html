@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#f4f3ee" />
-  <meta name="description" content="Beranda VULCANEOS, WebGIS pemantauan lingkungan dan dinamika pesisir Anak Krakatau." />
-  <title>VULCANEOS · Beranda</title>
+  <meta name="description" content="Beranda VOLCANEOS, WebGIS pemantauan lingkungan dan dinamika pesisir Anak Krakatau." />
+  <title>VOLCANEOS · Beranda</title>
   <script>
     try {
       if (localStorage.getItem('vulcaneos-home-theme') === 'night') {
@@ -25,16 +25,16 @@
   <link rel="stylesheet" href="landing-v2.css?v=home-layout-3" />
   <link rel="stylesheet" href="logo.css" />
   <link rel="stylesheet" href="pages.css?v=hv-5" />
-  <link rel="stylesheet" href="home-theme.css?v=3" />
+  <link rel="stylesheet" href="home-theme.css?v=4" />
 </head>
 <body class="landing-body">
 <div class="landing-page home-landing" id="landingPage">
 
   <!-- ═══ NAV ═══ -->
   <header class="landing-nav home-nav">
-    <a class="landing-brand" href="index.html" aria-label="VULCANEOS beranda">
+    <a class="landing-brand" href="index.html" aria-label="VOLCANEOS beranda">
       <span class="landing-brand-mark"><img src="volcanoes-transparent.png" alt="" /></span>
-      <span><strong>VULCANEOS</strong><small>VOLCANIC &amp; OCEAN INTELLIGENCE</small></span>
+      <span><strong>VOLCANEOS</strong><small>VOLCANIC &amp; OCEAN INTELLIGENCE</small></span>
     </a>
     <nav class="landing-links" aria-label="Navigasi utama">
       <a href="peta.html">Peta</a>
@@ -49,7 +49,21 @@
     <button class="home-theme-toggle" type="button" data-home-theme-toggle aria-pressed="false" aria-label="Aktifkan Night mode">
       <i class="fa-regular fa-moon" aria-hidden="true"></i><span>Night mode</span>
     </button>
-    <button class="landing-open" type="button" data-enter-webgis>Login Admin <i class="fa-solid fa-arrow-right-to-bracket" aria-hidden="true"></i></button>
+    <button class="landing-open" id="homeLoginButton" type="button" data-enter-webgis>Masuk / Daftar <i class="fa-solid fa-arrow-right-to-bracket" aria-hidden="true"></i></button>
+    <div class="home-account" id="homeAccount" hidden>
+      <button class="home-profile-trigger" id="homeProfileButton" type="button" aria-label="Profil pengguna" aria-expanded="false" aria-controls="homeProfileMenu">
+        <i class="fa-regular fa-circle-user" aria-hidden="true"></i>
+      </button>
+      <div class="home-profile-menu" id="homeProfileMenu" hidden>
+        <div class="home-profile-identity">
+          <strong id="homeProfileName"></strong>
+          <small id="homeProfileUsername"></small>
+          <span id="homeProfileRole"></span>
+        </div>
+        <a href="#forum"><i class="fa-regular fa-comments" aria-hidden="true"></i> Forum diskusi</a>
+        <button type="button" id="homeLogoutButton"><i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i> Keluar</button>
+      </div>
+    </div>
     <button class="landing-menu-toggle" type="button" aria-label="Buka navigasi" aria-expanded="false"><i class="fa-solid fa-bars"></i></button>
   </header>
 
@@ -58,7 +72,7 @@
     <!-- ═══════════════════════════════
          1. HERO
     ════════════════════════════════════ -->
-    <section class="hm-hero" aria-label="VULCANEOS, pemantauan Anak Krakatau">
+    <section class="hm-hero" aria-label="VOLCANEOS, pemantauan Anak Krakatau">
       <div class="hm-hero-media">
         <img class="hm-hero-img" src="krakatau.jpg" alt="Lanskap Anak Krakatau dan perairan Selat Sunda" />
         <div class="hm-hero-veil"></div>
@@ -72,7 +86,7 @@
 
         <div class="hm-hero-copy" data-reveal>
           <span class="hm-hero-eyebrow">VOLCANIC &amp; OCEAN INTELLIGENCE</span>
-          <h1 class="hm-hero-title">VULCANEOS</h1>
+          <h1 class="hm-hero-title">VOLCANEOS</h1>
           <p class="hm-hero-sub">WebGIS pemantauan lingkungan dan dinamika pesisir Anak Krakatau.</p>
           <div class="hm-hero-actions">
             <a href="peta.html" class="hm-hero-btn">Jelajahi peta <i class="fa-solid fa-arrow-right"></i></a>
@@ -125,7 +139,7 @@
       <article class="hm-about-copy" data-reveal>
         <span class="hm-eyebrow"><i></i> TENTANG WEB</span>
         <h2>Memahami perubahan<br /><em>lingkungan pesisir.</em></h2>
-        <p>VULCANEOS menyajikan visualisasi perubahan lingkungan Pulau Anak Krakatau melalui analisis spasial-temporal dan pemodelan geospasial.</p>
+        <p>VOLCANEOS menyajikan visualisasi perubahan lingkungan Pulau Anak Krakatau melalui analisis spasial-temporal dan pemodelan geospasial.</p>
         <p>Jelajahi perubahan morfologi dan garis pantai serta parameter oseanografi dalam satu ruang informasi yang mudah ditelusuri.</p>
         <a class="hm-text-link" href="latar-belakang.html">Kenali latar belakang <i class="fa-solid fa-arrow-right"></i></a>
 
@@ -267,7 +281,7 @@
         <span class="hm-eyebrow"><i></i> PROFIL GUNUNG ANAK KRAKATAU</span>
         <h2>Sebuah pulau<br />yang terus <em>berubah.</em></h2>
         <p>Terletak di Selat Sunda, Anak Krakatau berada dalam lingkungan kepulauan yang dibentuk oleh aktivitas vulkanik dan proses oseanografi yang aktif.</p>
-        <p>VULCANEOS mengajak pengguna melihat kawasan ini lewat konteks lokasi, perubahan morfologi, dinamika pesisir, dan kondisi perairannya dalam satu portal terpadu.</p>
+        <p>VOLCANEOS mengajak pengguna melihat kawasan ini lewat konteks lokasi, perubahan morfologi, dinamika pesisir, dan kondisi perairannya dalam satu portal terpadu.</p>
 
         <div class="hm-profile-stats">
           <div><span>LOKASI</span><b>Selat Sunda</b></div>
@@ -367,14 +381,14 @@
   <footer class="landing-footer home-footer">
     <a class="landing-brand" href="index.html">
       <span class="landing-brand-mark"><img src="volcanoes-transparent.png" alt="" /></span>
-      <span><strong>VULCANEOS</strong><small>VOLCANIC &amp; OCEAN INTELLIGENCE</small></span>
+      <span><strong>VOLCANEOS</strong><small>VOLCANIC &amp; OCEAN INTELLIGENCE</small></span>
     </a>
     <span>Portal pemantauan lingkungan pesisir · Selat Sunda</span>
     <span>WEBGIS / 01.0</span>
   </footer>
 
 </div>
-<script src="landing.js"></script>
-<script src="forum.js"></script>
+<script src="landing.js?v=home-profile-1"></script>
+<script src="forum.js?v=forum-permissions-1"></script>
 </body>
 </html>
