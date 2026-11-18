@@ -229,7 +229,7 @@ function renderProfile() {
   if (!profile) return;
   const name = profile.name || currentSession.user;
   $$('.profile-popover-name, .user b').forEach((element) => { element.textContent = name; });
-  $$('.profile-popover-institution, .user small').forEach((element) => { element.textContent = profile.institution || 'Pengguna VULCANEOS'; });
+  $$('.profile-popover-institution, .user small').forEach((element) => { element.textContent = profile.institution || 'Pengguna VOLCANEOS'; });
   const avatar = $('#profileAvatar');
   if (avatar) avatar.textContent = String(name).trim().charAt(0).toUpperCase() || '?';
   const badge = $('#profileRoleBadge');
@@ -372,7 +372,7 @@ function buildAdminReport() {
     });
   });
   return {
-    report: 'VULCANEOS WebGIS data inventory',
+    report: 'VOLCANEOS WebGIS data inventory',
     generatedAt,
     generatedBy: currentSession?.profile?.name || currentSession?.user || 'admin',
     note: 'Jumlah fitur dan rentang gridcode diisi jika dataset telah dimuat pada sesi WebGIS ini. Rentang nilai per kelas dicantumkan jika tersedia.',
@@ -474,7 +474,7 @@ function exportAdminReport(format) {
   const filenameBase = `vulcaneos-laporan-${report.datasets.length}-dataset-${date}`;
   if (format === 'json') {
     const readableReport = {
-      laporan: 'Inventaris data VULCANEOS WebGIS',
+      laporan: 'Inventaris data VOLCANEOS WebGIS',
       dibuatPada: report.generatedAt,
       dibuatOleh: report.generatedBy,
       ringkasan: {
