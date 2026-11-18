@@ -34,11 +34,13 @@ loadEnvFile();
 const { getSession, isAdmin } = require('./lib/auth');
 const API_ROUTES = {
   '/api/login': require('./api/login'),
+  '/api/register': require('./api/register'),
   '/api/logout': require('./api/logout'),
   '/api/me': require('./api/me'),
   '/api/session': require('./api/me'),
   '/api/profile': require('./api/profile'),
   '/api/forum': require('./api/forum'),
+  '/api/admin/users': require('./api/admin/users'),
 };
 
 const AUTH_USERS = String(process.env.AUTH_USERS || `${process.env.AUTH_ID || ''}:${process.env.AUTH_PASSWORD || ''}`)
@@ -54,7 +56,7 @@ if (!AUTH_USERS.length || !SESSION_SECRET || SESSION_SECRET.length < 32) {
   throw new Error('AUTH_USERS and a 32-character AUTH_SESSION_SECRET are required in .env.');
 }
 
-const allowedRootFiles = new Set(['index.html', 'peta.html', 'tentang.html', 'login.html', 'register.html', 'webgis.html', 'misi.html', 'game.html', 'sumber.html', 'latar-belakang.html', 'tujuan.html', 'simulasi.html', 'krakatau.jpg', 'krakatauanak.jpg', 'petadatar.jpg', 'petadasar1.jpg', 'backgroundphotobooth.jpg', 'style.css', 'landing-v2.css', 'pages.css', 'home-theme.css', 'public-map.css', 'public-map.js', 'download-modal.css', 'logo.css', 'volcanoes-transparent.png', 'volcanoes-favicon.png', 'volcanoes-favicon-32.png', 'photoboothtemp1.jpeg', 'photoboothtemp2.jpeg', 'edukasi1.jpeg', 'edukasi2.jpeg', 'edukasi3.jpeg', 'pemetaanVulkanik.jpeg', 'app.js', 'auth-client.js', 'landing.js', 'forum.js', 'photo-booth.css', 'photo-booth.js', 'game.css', 'game.js', 'simulasi.css', 'simulasi.js', 'simulasi-scene.js']);
+const allowedRootFiles = new Set(['index.html', 'peta.html', 'tentang.html', 'login.html', 'register.html', 'webgis.html', 'admin-users.html', 'admin-users.css', 'admin-users.js', 'misi.html', 'game.html', 'sumber.html', 'latar-belakang.html', 'tujuan.html', 'simulasi.html', 'krakatau.jpg', 'krakatauanak.jpg', 'petadatar.jpg', 'petadasar1.jpg', 'backgroundphotobooth.jpg', 'style.css', 'landing-v2.css', 'pages.css', 'home-theme.css', 'public-map.css', 'public-map.js', 'download-modal.css', 'logo.css', 'volcanoes-transparent.png', 'volcanoes-favicon.png', 'volcanoes-favicon-32.png', 'photoboothtemp1.jpeg', 'photoboothtemp2.jpeg', 'edukasi1.jpeg', 'edukasi2.jpeg', 'edukasi3.jpeg', 'pemetaanVulkanik.jpeg', 'app.js', 'auth-client.js', 'landing.js', 'forum.js', 'photo-booth.css', 'photo-booth.js', 'game.css', 'game.js', 'simulasi.css', 'simulasi.js', 'simulasi-scene.js']);
 
 function jsonResponse(response, status, body, extraHeaders = {}) {
   response.writeHead(status, { 'Content-Type': MIME_TYPES['.json'], 'Cache-Control': 'no-store', ...extraHeaders });
@@ -148,6 +150,15 @@ const server = http.createServer(async (request, response) => {
     const session = getSession(request);
     if (!session || !isAdmin(session.sub)) {
       response.writeHead(302, { Location: session ? '/peta.html' : '/login.html', 'Cache-Control': 'no-store' });
+      response.end();
+      return;
+    }
+  }
+
+  if (pathname === '/admin-users.html') {
+    const session = getSession(request);
+    if (!session || !isAdmin(session.sub)) {
+      response.writeHead(302, { Location: session ? '/index.html' : '/login.html', 'Cache-Control': 'no-store' });
       response.end();
       return;
     }
