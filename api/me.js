@@ -1,4 +1,4 @@
-const { getSession, profileFor, isAdmin, json } = require('../lib/auth');
+const { getSession, profileFor, isAdmin, clearCookie, json } = require('../lib/auth');
 const { isConfigured, getProfile, DatabaseError } = require('../lib/db');
 
 module.exports = async (req, res) => {
@@ -10,14 +10,20 @@ module.exports = async (req, res) => {
     }
     if (isConfigured()) {
       const profile = await getProfile(session.sub);
-      if (profile) {
-        return json(res, 200, {
-          authenticated: true,
-          user: session.sub,
-          profile,
-          role: profile.role,
-        });
+      if (!profile) {
+        return json(
+          res,
+          200,
+          { authenticated: false, user: null, profile: null, role: null },
+          { 'Set-Cookie': clearCookie(req) }
+        );
       }
+      return json(res, 200, {
+        authenticated: true,
+        user: session.sub,
+        profile,
+        role: profile.role,
+      });
     }
     return json(res, 200, {
       authenticated: true,
