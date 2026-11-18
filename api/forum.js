@@ -1,6 +1,7 @@
 const { getSession, isAdmin, json } = require('../lib/auth');
 const {
   isConfigured,
+  findUser,
   listThreads,
   getThread,
   createThread,
@@ -83,6 +84,7 @@ module.exports = async (req, res) => {
 
     if (action === 'toggle-like') {
       if (!session) return json(res, 401, { error: 'Masuk terlebih dahulu untuk menyukai diskusi.' });
+      if (!await findUser(session.sub)) return json(res, 401, { error: 'Akun tidak ditemukan. Silakan masuk kembali.' });
       const threadId = objectIdText(body.threadId);
       if (!threadId) return json(res, 400, { error: 'ID diskusi tidak valid.' });
       const result = await toggleThreadLike(threadId, { username: session.sub });
