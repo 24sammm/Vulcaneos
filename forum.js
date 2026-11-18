@@ -117,31 +117,30 @@
     if (authNote) {
       authNote.replaceChildren();
       if (signedIn) {
-        authNote.textContent = `Masuk sebagai ${session.profile?.name || session.user}. Diskusi dan komentar Anda akan tampil dengan nama ini.`;
+        authNote.textContent = `Masuk sebagai ${session.profile?.name || session.user}. Anda dapat membuat topik, berkomentar, menyukai diskusi, dan menghapus komentar Anda sendiri.`;
       } else {
-        authNote.append('Anda dapat membuat diskusi, memberi suka, dan berkomentar sebagai Pengunjung. ');
+        authNote.append('Masuk untuk membuat topik atau menyukai diskusi. Pengunjung anonim tetap dapat berkomentar. ');
         const link = document.createElement('a');
         link.href = 'login.html';
-        link.textContent = 'Masuk ke akun Anda';
-        authNote.append(link, ' untuk memakai nama akun.');
+        link.textContent = 'Masuk / Daftar';
+        authNote.append(link, '.');
       }
     }
     if (composeToggle) {
-      composeToggle.innerHTML = signedIn
-        ? 'Mulai diskusi <i class="fa-solid fa-plus" aria-hidden="true"></i>'
-        : 'Mulai diskusi sebagai Pengunjung <i class="fa-solid fa-plus" aria-hidden="true"></i>';
+      composeToggle.hidden = !signedIn;
+      composeToggle.innerHTML = 'Mulai diskusi <i class="fa-solid fa-plus" aria-hidden="true"></i>';
       composeToggle.setAttribute('aria-expanded', String(!threadForm?.hidden));
     }
     if (detailAuthNote) {
       detailAuthNote.replaceChildren();
       if (!signedIn) {
-        detailAuthNote.append('Anda dapat berkomentar sebagai Pengunjung. Komentar hanya dapat dihapus oleh admin. ');
+        detailAuthNote.append('Pengunjung dapat berkomentar, tetapi komentar anonim hanya dapat dihapus oleh admin. ');
         const link = document.createElement('a');
         link.href = 'login.html';
-        link.textContent = 'Halaman masuk';
-        detailAuthNote.append(link, ' untuk memakai nama akun.');
+        link.textContent = 'Masuk / Daftar';
+        detailAuthNote.append(link, ' untuk memakai akun.');
       } else {
-        detailAuthNote.textContent = 'Komentar hanya dapat dihapus oleh admin.';
+        detailAuthNote.textContent = 'Anda dapat menghapus komentar sendiri. Admin dapat menghapus semua komentar.';
       }
     }
   }
@@ -209,7 +208,7 @@
     const body = document.querySelector('#forumDetailBody');
     const repliesWrap = document.querySelector('#forumReplies');
     const authorContext = thread.author?.institution
-      || (thread.author?.role === 'guest' ? 'Tanpa akun' : 'Pengguna VULCANEOS');
+      || (thread.author?.role === 'guest' ? 'Tanpa akun' : 'Pengguna VOLCANEOS');
     if (meta) meta.textContent = `${thread.author?.name || 'Pengguna'} · ${authorContext} · ${formatDate(thread.createdAt)}`;
     if (title) title.textContent = thread.title;
     if (body) body.textContent = thread.body;
@@ -220,30 +219,35 @@
     const count = document.createElement('b');
     count.textContent = `${thread.replies.length} balasan`;
     heading.append(count);
-    const like = document.createElement('button');
-    like.type = 'button';
+    const like = document.createElement(session?.authenticated ? 'button' : 'a');
+    if (session?.authenticated) like.type = 'button';
     like.className = `hm-forum-like${thread.likedByMe ? ' is-liked' : ''}`;
-    like.setAttribute('aria-pressed', String(Boolean(thread.likedByMe)));
-    like.setAttribute('aria-label', thread.likedByMe ? 'Batalkan suka' : 'Sukai diskusi');
+    like.setAttribute('aria-label', session?.authenticated
+      ? thread.likedByMe ? 'Batalkan suka' : 'Sukai diskusi'
+      : 'Masuk untuk menyukai diskusi');
+    if (session?.authenticated) like.setAttribute('aria-pressed', String(Boolean(thread.likedByMe)));
+    else like.href = 'login.html';
     const likeIcon = document.createElement('i');
     likeIcon.className = `fa-${thread.likedByMe ? 'solid' : 'regular'} fa-heart`;
     likeIcon.setAttribute('aria-hidden', 'true');
     like.append(likeIcon, ` ${thread.likeCount || 0} suka`);
-    like.addEventListener('click', async () => {
-      like.disabled = true;
-      try {
-        await requestJson('/api/forum', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'toggle-like', threadId: thread.id }),
-        });
-        await openThread(thread.id, false);
-        await loadThreads();
-      } catch (error) {
-        window.alert(error.message);
-        like.disabled = false;
-      }
-    });
+    if (session?.authenticated) {
+      like.addEventListener('click', async () => {
+        like.disabled = true;
+        try {
+          await requestJson('/api/forum', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'toggle-like', threadId: thread.id }),
+          });
+          await openThread(thread.id, false);
+          await loadThreads();
+        } catch (error) {
+          window.alert(error.message);
+          like.disabled = false;
+        }
+      });
+    }
     heading.append(like);
     if (canDelete(thread.author, thread.id, true)) {
       const remove = document.createElement('button');
@@ -296,11 +300,11 @@
       const when = document.createElement('small');
       const replyContext = reply.author?.role === 'guest'
         ? 'Tanpa akun'
-        : reply.author?.institution || 'Pengguna VULCANEOS';
+        : reply.author?.institution || 'Pengguna VOLCANEOS';
       when.textContent = `${replyContext} · ${formatDate(reply.createdAt)}`;
       who.append(name, when);
       top.append(avatar, who);
-      if (session?.role === 'admin') {
+      if (session?.authenticated && (session.role === 'admin' || session.user === reply.author?.username)) {
         const remove = document.createElement('button');
         remove.type = 'button';
         remove.className = 'hm-forum-delete';
