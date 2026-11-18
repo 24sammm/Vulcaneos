@@ -25,7 +25,7 @@
   <link rel="stylesheet" href="landing-v2.css?v=home-layout-3" />
   <link rel="stylesheet" href="logo.css" />
   <link rel="stylesheet" href="pages.css?v=hv-5" />
-  <link rel="stylesheet" href="home-theme.css?v=5" />
+  <link rel="stylesheet" href="home-theme.css?v=6" />
 </head>
 <body class="landing-body">
 <div class="landing-page home-landing" id="landingPage">
@@ -60,6 +60,19 @@
           <small id="homeProfileUsername"></small>
           <span id="homeProfileRole"></span>
         </div>
+        <button class="home-profile-edit-toggle" id="homeProfileEditToggle" type="button" aria-expanded="false" aria-controls="homeProfileEditForm">
+          <i class="fa-solid fa-pen" aria-hidden="true"></i> Edit profil
+        </button>
+        <form class="home-profile-edit-form" id="homeProfileEditForm" hidden>
+          <label for="homeProfileNameInput">Nama</label>
+          <input id="homeProfileNameInput" name="name" type="text" minlength="2" maxlength="80" autocomplete="name" required />
+          <label for="homeProfileInstitutionInput">Instansi</label>
+          <input id="homeProfileInstitutionInput" name="institution" type="text" maxlength="120" autocomplete="organization" />
+          <label for="homeProfileBioInput">Bio</label>
+          <textarea id="homeProfileBioInput" name="bio" rows="3" maxlength="400" placeholder="Peran atau minat Anda"></textarea>
+          <p class="home-profile-edit-status" id="homeProfileEditStatus" role="status" aria-live="polite"></p>
+          <button type="submit"><i class="fa-solid fa-check" aria-hidden="true"></i> Simpan perubahan</button>
+        </form>
         <a href="#forum"><i class="fa-regular fa-comments" aria-hidden="true"></i> Forum diskusi</a>
         <button type="button" id="homeLogoutButton"><i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i> Keluar</button>
       </div>
@@ -388,7 +401,7 @@
   </footer>
 
 </div>
-<script src="landing.js?v=home-profile-2"></script>
+<script src="landing.js?v=home-profile-3"></script>
 <script src="forum.js?v=forum-permissions-1"></script>
 </body>
 </html>
