@@ -517,6 +517,29 @@
 #homeProfileMenu > a i, #homeProfileMenu > button i { width: 16px; color: #718579; text-align: center; }
 #homeProfileMenu > button { margin-top: 5px; border-top: 1px solid #edf0f1; border-radius: 0 0 7px 7px; color: #9c4545; }
 #homeProfileMenu > button:hover { background: #fbf2f1; color: #913e3e; }
+#homeProfileEditToggle { display: flex; min-height: 38px; align-items: center; gap: 9px; margin-top: 6px; padding: 0 12px; border: 0; border-radius: 7px; background: transparent; color: #34475e; text-align: left; font: 600 11px var(--v-sans); cursor: pointer; }
+#homeProfileEditToggle:hover, #homeProfileEditToggle[aria-expanded="true"] { background: #f2f6f3; color: #1d6b57; }
+#homeProfileEditForm { display: grid; gap: 7px; padding: 10px 12px 12px; border-top: 1px solid #edf0f1; }
+#homeProfileEditForm[hidden] { display: none !important; }
+#homeProfileEditForm label { margin-top: 2px; color: #687889; font: 700 9px var(--v-sans); }
+#homeProfileEditForm input, #homeProfileEditForm textarea { width: 100%; min-width: 0; padding: 8px 9px; border: 1px solid #dce3e6; border-radius: 6px; outline: 0; background: #fbfcfb; color: #26384d; font: 400 11px/1.45 var(--v-sans); }
+#homeProfileEditForm textarea { resize: vertical; }
+#homeProfileEditForm input:focus, #homeProfileEditForm textarea:focus { border-color: #7d9c8b; box-shadow: 0 0 0 3px #315d5212; }
+#homeProfileEditForm > button { display: flex; min-height: 36px; align-items: center; justify-content: center; gap: 7px; border: 0; border-radius: 6px; background: #315d52; color: #fff; font: 700 10px var(--v-sans); cursor: pointer; }
+#homeProfileEditForm > button:hover { background: #24483f; }
+#homeProfileEditForm > button:disabled { opacity: .65; cursor: wait; }
+.home-profile-edit-status { min-height: 0; margin: 0; color: #37644f; font: 500 9px/1.45 var(--v-sans); }
+.home-profile-edit-status:empty { display: none; }
+.home-profile-edit-status[data-tone="error"] { color: #a53d3d; }
+:root[data-home-theme="night"] #homeProfileEditToggle { color: #e4ebf2; }
+:root[data-home-theme="night"] #homeProfileEditToggle:hover,
+:root[data-home-theme="night"] #homeProfileEditToggle[aria-expanded="true"] { background: #253647; }
+:root[data-home-theme="night"] #homeProfileEditForm { border-color: #354351; }
+:root[data-home-theme="night"] #homeProfileEditForm label { color: #a4b1bf; }
+:root[data-home-theme="night"] #homeProfileEditForm input,
+:root[data-home-theme="night"] #homeProfileEditForm textarea { border-color: #46596c; background: #101820; color: #e4ebf2; }
+:root[data-home-theme="night"] .home-profile-edit-status { color: #9bc9ad; }
+:root[data-home-theme="night"] .home-profile-edit-status[data-tone="error"] { color: #e59a9a; }
 :root[data-home-theme="night"] #homeProfileButton { border-color: #46596c; background: #1b2733; }
 :root[data-home-theme="night"] .home-profile-trigger-avatar { background: #80aee9; color: #101820; }
 :root[data-home-theme="night"] #homeProfileMenu { border-color: #354351; background: #1b2733; }
