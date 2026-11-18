@@ -31,6 +31,7 @@ fetch('/api/me', { credentials: 'same-origin' })
   .then((session) => {
     if (!session?.authenticated || !session.profile || !homeAccount) return;
     const name = session.profile.name || session.user;
+    document.querySelector('#homeProfileTriggerAvatar').textContent = String(name).trim().charAt(0).toUpperCase() || '?';
     document.querySelector('#homeProfileName').textContent = name;
     document.querySelector('#homeProfileUsername').textContent = `@${session.user}`;
     document.querySelector('#homeProfileRole').textContent = session.role === 'admin' ? 'ADMINISTRATOR' : 'PENGGUNA';
