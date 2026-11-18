@@ -25,7 +25,7 @@
   <link rel="stylesheet" href="landing-v2.css?v=home-layout-3" />
   <link rel="stylesheet" href="logo.css" />
   <link rel="stylesheet" href="pages.css?v=hv-5" />
-  <link rel="stylesheet" href="home-theme.css?v=7" />
+  <link rel="stylesheet" href="home-theme.css?v=notifications-1" />
 </head>
 <body class="landing-body">
 <div class="landing-page home-landing" id="landingPage">
@@ -51,6 +51,20 @@
     </button>
     <button class="landing-open" id="homeLoginButton" type="button" data-enter-webgis>Masuk / Daftar <i class="fa-solid fa-arrow-right-to-bracket" aria-hidden="true"></i></button>
     <div class="home-account" id="homeAccount" hidden>
+      <div class="home-notifications" id="homeNotifications" hidden>
+        <button class="home-notification-button" id="homeNotificationButton" type="button" aria-label="Notifikasi" aria-expanded="false" aria-controls="homeNotificationPanel">
+          <i class="fa-regular fa-bell" aria-hidden="true"></i>
+          <span class="home-notification-badge" id="homeNotificationBadge" hidden></span>
+        </button>
+        <section class="home-notification-panel" id="homeNotificationPanel" hidden aria-label="Informasi dari admin">
+          <header>
+            <div><strong>Informasi admin</strong><small>Notifikasi untuk akun Anda</small></div>
+            <button type="button" id="homeNotificationClose" aria-label="Tutup notifikasi"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+          </header>
+          <p class="home-notification-status" id="homeNotificationStatus" role="status" aria-live="polite"></p>
+          <div class="home-notification-list" id="homeNotificationList"></div>
+        </section>
+      </div>
       <button class="home-profile-trigger" id="homeProfileButton" type="button" aria-label="Profil pengguna" aria-expanded="false" aria-controls="homeProfileMenu">
         <span class="home-profile-trigger-avatar" id="homeProfileTriggerAvatar" aria-hidden="true"></span>
       </button>
@@ -403,7 +417,7 @@
   </footer>
 
 </div>
-<script src="landing.js?v=home-profile-4"></script>
+<script src="landing.js?v=notifications-1"></script>
 <script src="forum.js?v=forum-permissions-1"></script>
 </body>
 </html>
