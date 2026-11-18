@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#f1f0eb" />
-  <title>Daftar Akses · Krakatau Watch</title>
+  <title>Daftar Akun · Volcaneos</title>
   <link rel="icon" type="image/png" sizes="32x32" href="volcanoes-favicon-32.png?v=2" />
   <link rel="icon" type="image/png" sizes="512x512" href="volcanoes-favicon.png?v=2" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -18,7 +18,7 @@
   <main class="auth-shell auth-register-shell">
     <aside class="auth-aside">
       <div class="auth-image"></div><div class="auth-image-shade"></div>
-      <a class="auth-brand" href="index.html"><span class="landing-brand-mark"><img src="volcanoes-transparent.png" alt="" /></span><span><strong>VULCANEOS</strong><small>VOLCANIC &amp; OCEAN INTELLIGENCE</small></span></a>
+      <a class="auth-brand" href="index.html"><span class="landing-brand-mark"><img src="volcanoes-transparent.png" alt="" /></span><span><strong>VOLCANEOS</strong><small>VOLCANIC &amp; OCEAN INTELLIGENCE</small></span></a>
       <div class="auth-aside-copy"><span class="auth-kicker"><i></i> SELAT SUNDA | INDONESIA</span><h1>Pengamatan yang baik<br/><em>dimulai dari data.</em></h1><p>Daftarkan akses untuk menjelajahi parameter pesisir, periode pengamatan, dan konteks spasialnya.</p></div>
       <div class="auth-location"><i class="fa-solid fa-location-dot"></i><span><small>AREA PEMANTAUAN</small><b>Anak Krakatau · Selat Sunda</b></span><span class="auth-coordinate">6° 06' S<br/>105° 25' E</span></div>
       <span class="auth-aside-credit">CITRA KAWASAN · ESRI WORLD IMAGERY</span>
@@ -26,29 +26,31 @@
     <section class="auth-main">
       <a class="auth-back" href="index.html"><i class="fa-solid fa-arrow-left"></i> Kembali ke beranda</a>
       <div class="auth-form-wrap register-form-wrap">
-        <span class="auth-kicker auth-kicker-light">PERMOHONAN AKSES</span>
-        <h2>Ajukan akses.</h2>
-        <p class="auth-intro">Kirim detail permohonan akses. Admin akan meninjau sebelum menambahkan akun.</p>
-        <form class="auth-form" id="accessRequestForm" method="post" action="/api/access-request" autocomplete="on">
+        <span class="auth-kicker auth-kicker-light">REGISTRASI AKUN</span>
+        <h2>Buat akun.</h2>
+        <p class="auth-intro">Daftar untuk membuat akun pengguna dan masuk ke VOLCANEOS.</p>
+        <form class="auth-form" id="registerForm" method="post" action="/api/register" autocomplete="on">
           <label for="registerName">Nama lengkap</label>
-          <div class="auth-input-wrap"><i class="fa-regular fa-id-card"></i><input id="registerName" name="name" type="text" placeholder="Nama sesuai identitas" autocomplete="name" maxlength="120" required /></div>
+          <div class="auth-input-wrap"><i class="fa-regular fa-id-card"></i><input id="registerName" name="name" type="text" placeholder="Nama lengkap" autocomplete="name" minlength="2" maxlength="80" required /></div>
           <label for="registerInstitution">Instansi</label>
-          <div class="auth-input-wrap"><i class="fa-regular fa-building"></i><input id="registerInstitution" name="institution" type="text" placeholder="Nama instansi atau organisasi" autocomplete="organization" required /></div>
+          <div class="auth-input-wrap"><i class="fa-regular fa-building"></i><input id="registerInstitution" name="institution" type="text" placeholder="Nama instansi atau organisasi (opsional)" autocomplete="organization" maxlength="120" /></div>
           <label for="registerEmail">Email</label>
-          <div class="auth-input-wrap"><i class="fa-regular fa-envelope"></i><input id="registerEmail" name="email" type="email" placeholder="nama@instansi.go.id" autocomplete="email" required /></div>
+          <div class="auth-input-wrap"><i class="fa-regular fa-envelope"></i><input id="registerEmail" name="email" type="email" placeholder="nama@instansi.go.id" autocomplete="email" maxlength="254" required /></div>
           <label for="registerId">ID pengguna yang diajukan</label>
           <div class="auth-input-wrap"><i class="fa-regular fa-user"></i><input id="registerId" name="username" type="text" placeholder="3–32 karakter: huruf, angka, titik, _ atau -" minlength="3" maxlength="32" pattern="[A-Za-z0-9._-]{3,32}" autocomplete="username" required /></div>
-          <label for="registerReason">Keperluan akses</label>
-          <div class="auth-input-wrap"><i class="fa-regular fa-comment-dots"></i><input id="registerReason" name="reason" type="text" placeholder="Contoh: penelitian pesisir" maxlength="300" required /></div>
+          <label for="registerPassword">Kata sandi</label>
+          <div class="auth-input-wrap"><i class="fa-solid fa-lock"></i><input id="registerPassword" name="password" type="password" placeholder="Minimal 10 karakter" autocomplete="new-password" minlength="10" maxlength="128" required /><button class="password-toggle" type="button" data-toggle-password="registerPassword" aria-label="Tampilkan kata sandi"><i class="fa-regular fa-eye"></i></button></div>
+          <label for="registerConfirmPassword">Konfirmasi kata sandi</label>
+          <div class="auth-input-wrap"><i class="fa-solid fa-lock"></i><input id="registerConfirmPassword" name="confirmPassword" type="password" placeholder="Ulangi kata sandi" autocomplete="new-password" minlength="10" maxlength="128" required /><button class="password-toggle" type="button" data-toggle-password="registerConfirmPassword" aria-label="Tampilkan kata sandi"><i class="fa-regular fa-eye"></i></button></div>
           <div class="auth-honeypot" aria-hidden="true"><label for="registerWebsite">Website</label><input id="registerWebsite" name="website" type="text" tabindex="-1" autocomplete="off" /></div>
-          <button class="auth-submit" type="submit">Kirim permohonan <i class="fa-solid fa-arrow-right"></i></button>
-          <p class="auth-status" role="status" aria-live="polite">Permohonan akan dikirim ke admin melalui FormSubmit. Kata sandi tidak diminta atau dikirim melalui formulir ini.</p>
+          <button class="auth-submit" type="submit">Buat akun <i class="fa-solid fa-arrow-right"></i></button>
+          <p class="auth-status" id="registerStatus" role="status" aria-live="polite">Akun langsung aktif setelah dibuat. Email disimpan sebagai kontak, tetapi tidak diverifikasi. Setelah mendaftar, silakan masuk dengan ID pengguna dan kata sandi Anda.</p>
         </form>
         <p class="auth-switch">Sudah memiliki akun? <a href="login.html">Masuk</a></p>
       </div>
-      <footer class="auth-footer"><span>© KRAKATAU WATCH</span><span>AKSES AKUN</span><span>v1.0</span></footer>
+      <footer class="auth-footer"><span>© Volcaneos</span><span>AKSES AKUN</span><span>v1.0</span></footer>
     </section>
   </main>
-  <script src="auth-client.js?v=access-request-status-2"></script>
+  <script src="auth-client.js?v=home-profile-1"></script>
 </body>
 </html>
