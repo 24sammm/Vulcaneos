@@ -28,7 +28,113 @@ const homeLogoutButton = document.querySelector('#homeLogoutButton');
 const homeProfileEditToggle = document.querySelector('#homeProfileEditToggle');
 const homeProfileEditForm = document.querySelector('#homeProfileEditForm');
 const homeProfileEditStatus = document.querySelector('#homeProfileEditStatus');
+const homeNotifications = document.querySelector('#homeNotifications');
+const homeNotificationButton = document.querySelector('#homeNotificationButton');
+const homeNotificationBadge = document.querySelector('#homeNotificationBadge');
+const homeNotificationPanel = document.querySelector('#homeNotificationPanel');
+const homeNotificationClose = document.querySelector('#homeNotificationClose');
+const homeNotificationStatus = document.querySelector('#homeNotificationStatus');
+const homeNotificationList = document.querySelector('#homeNotificationList');
 let homeSession = null;
+
+function updateHomeNotificationBadge(count) {
+  const unreadCount = Number.isFinite(count) ? Math.max(0, count) : 0;
+  homeNotificationBadge.textContent = unreadCount > 99 ? '99+' : String(unreadCount);
+  homeNotificationBadge.hidden = unreadCount === 0;
+  homeNotificationButton.setAttribute(
+    'aria-label',
+    unreadCount ? `Notifikasi, ${unreadCount} belum dibaca` : 'Notifikasi',
+  );
+}
+
+function setHomeNotificationStatus(message, tone = '') {
+  homeNotificationStatus.textContent = message;
+  if (tone) homeNotificationStatus.dataset.tone = tone;
+  else homeNotificationStatus.removeAttribute('data-tone');
+}
+
+async function requestHomeNotifications(open = false) {
+  const response = await fetch('/api/me?resource=notifications', {
+    method: open ? 'POST' : 'GET',
+    credentials: 'same-origin',
+    headers: open ? { 'Content-Type': 'application/json' } : {},
+    body: open ? JSON.stringify({ action: 'open' }) : undefined,
+  });
+  const raw = await response.text();
+  let payload;
+  try {
+    const parsed = raw ? JSON.parse(raw) : {};
+    payload = parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    throw new Error('Server notifikasi mengirim respons yang tidak valid.');
+  }
+  if (!response.ok) throw new Error(payload.error || 'Notifikasi tidak dapat dimuat.');
+  return payload;
+}
+
+function renderHomeNotifications(items) {
+  homeNotificationList.replaceChildren();
+  if (!items.length) {
+    const empty = document.createElement('p');
+    empty.className = 'home-notification-empty';
+    empty.textContent = 'Belum ada informasi dari admin.';
+    homeNotificationList.append(empty);
+    return;
+  }
+
+  items.forEach((item) => {
+    const article = document.createElement('article');
+    article.className = 'home-notification-item';
+    const title = document.createElement('strong');
+    title.textContent = item.title;
+    const date = document.createElement('time');
+    if (item.createdAt) {
+      date.dateTime = item.createdAt;
+      const parsed = new Date(item.createdAt);
+      date.textContent = Number.isNaN(parsed.getTime())
+        ? ''
+        : new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short' }).format(parsed);
+    }
+    const message = document.createElement('p');
+    message.textContent = item.message;
+    article.append(title, date, message);
+    homeNotificationList.append(article);
+  });
+}
+
+async function refreshHomeNotificationCount() {
+  try {
+    const payload = await requestHomeNotifications();
+    updateHomeNotificationBadge(payload.unreadCount);
+  } catch (error) {
+    setHomeNotificationStatus(error.message);
+  }
+}
+
+async function openHomeNotifications() {
+  homeNotificationPanel.hidden = false;
+  homeNotificationButton.setAttribute('aria-expanded', 'true');
+  if (homeProfileMenu) {
+    homeProfileMenu.hidden = true;
+    homeProfileButton?.setAttribute('aria-expanded', 'false');
+  }
+  setHomeNotificationStatus('Memuat informasi…');
+  homeNotificationList.replaceChildren();
+  try {
+    const payload = await requestHomeNotifications(true);
+    const items = Array.isArray(payload.notifications) ? payload.notifications : [];
+    renderHomeNotifications(items);
+    updateHomeNotificationBadge(payload.unreadCount);
+    setHomeNotificationStatus('');
+  } catch (error) {
+    setHomeNotificationStatus(error.message, 'error');
+  }
+}
+
+function closeHomeNotifications() {
+  homeNotificationPanel.hidden = true;
+  homeNotificationButton.setAttribute('aria-expanded', 'false');
+}
 
 function renderHomeProfile() {
   if (!homeSession?.profile) return;
@@ -38,6 +144,7 @@ function renderHomeProfile() {
   document.querySelector('#homeProfileUsername').textContent = `@${homeSession.user}`;
   document.querySelector('#homeProfileRole').textContent = homeSession.role === 'admin' ? 'ADMINISTRATOR' : 'PENGGUNA';
   const isAdmin = homeSession.role === 'admin';
+  homeNotifications.hidden = homeSession.role !== 'user';
   document.querySelector('#homeAdminUsersLink').hidden = !isAdmin;
   document.querySelector('#homeAdminWebgisLink').hidden = !isAdmin;
   if (homeProfileEditForm) {
@@ -55,6 +162,7 @@ fetch('/api/me', { credentials: 'same-origin' })
     renderHomeProfile();
     homeAccount.hidden = false;
     if (homeLoginButton) homeLoginButton.hidden = true;
+    if (homeSession.role === 'user') refreshHomeNotificationCount();
   })
   .catch(() => {});
 
@@ -105,15 +213,25 @@ homeProfileEditForm?.addEventListener('submit', async (event) => {
 });
 
 homeProfileButton?.addEventListener('click', () => {
+  closeHomeNotifications();
   const isOpen = homeProfileMenu.hidden;
   homeProfileMenu.hidden = !isOpen;
   homeProfileButton.setAttribute('aria-expanded', String(isOpen));
 });
 
+homeNotificationButton?.addEventListener('click', () => {
+  if (homeNotificationPanel.hidden) openHomeNotifications();
+  else closeHomeNotifications();
+});
+homeNotificationClose?.addEventListener('click', closeHomeNotifications);
+
 document.addEventListener('click', (event) => {
   if (!event.target.closest('.home-account') && homeProfileMenu && !homeProfileMenu.hidden) {
     homeProfileMenu.hidden = true;
     homeProfileButton?.setAttribute('aria-expanded', 'false');
+  }
+  if (!event.target.closest('.home-notifications') && homeNotificationPanel && !homeNotificationPanel.hidden) {
+    closeHomeNotifications();
   }
 });
 
@@ -122,6 +240,10 @@ document.addEventListener('keydown', (event) => {
     homeProfileMenu.hidden = true;
     homeProfileButton?.setAttribute('aria-expanded', 'false');
     homeProfileButton?.focus();
+  }
+  if (event.key === 'Escape' && homeNotificationPanel && !homeNotificationPanel.hidden) {
+    closeHomeNotifications();
+    homeNotificationButton?.focus();
   }
 });
 
