@@ -25,20 +25,81 @@ const homeLoginButton = document.querySelector('#homeLoginButton');
 const homeProfileButton = document.querySelector('#homeProfileButton');
 const homeProfileMenu = document.querySelector('#homeProfileMenu');
 const homeLogoutButton = document.querySelector('#homeLogoutButton');
+const homeProfileEditToggle = document.querySelector('#homeProfileEditToggle');
+const homeProfileEditForm = document.querySelector('#homeProfileEditForm');
+const homeProfileEditStatus = document.querySelector('#homeProfileEditStatus');
+let homeSession = null;
+
+function renderHomeProfile() {
+  if (!homeSession?.profile) return;
+  const name = homeSession.profile.name || homeSession.user;
+  document.querySelector('#homeProfileTriggerAvatar').textContent = String(name).trim().charAt(0).toUpperCase() || '?';
+  document.querySelector('#homeProfileName').textContent = name;
+  document.querySelector('#homeProfileUsername').textContent = `@${homeSession.user}`;
+  document.querySelector('#homeProfileRole').textContent = homeSession.role === 'admin' ? 'ADMINISTRATOR' : 'PENGGUNA';
+  if (homeProfileEditForm) {
+    homeProfileEditForm.elements.name.value = name;
+    homeProfileEditForm.elements.institution.value = homeSession.profile.institution || '';
+    homeProfileEditForm.elements.bio.value = homeSession.profile.bio || '';
+  }
+}
 
 fetch('/api/me', { credentials: 'same-origin' })
   .then((response) => response.ok ? response.json() : null)
   .then((session) => {
     if (!session?.authenticated || !session.profile || !homeAccount) return;
-    const name = session.profile.name || session.user;
-    document.querySelector('#homeProfileTriggerAvatar').textContent = String(name).trim().charAt(0).toUpperCase() || '?';
-    document.querySelector('#homeProfileName').textContent = name;
-    document.querySelector('#homeProfileUsername').textContent = `@${session.user}`;
-    document.querySelector('#homeProfileRole').textContent = session.role === 'admin' ? 'ADMINISTRATOR' : 'PENGGUNA';
+    homeSession = session;
+    renderHomeProfile();
     homeAccount.hidden = false;
     if (homeLoginButton) homeLoginButton.hidden = true;
   })
   .catch(() => {});
+
+homeProfileEditToggle?.addEventListener('click', () => {
+  if (!homeProfileEditForm) return;
+  homeProfileEditForm.hidden = !homeProfileEditForm.hidden;
+  homeProfileEditToggle.setAttribute('aria-expanded', String(!homeProfileEditForm.hidden));
+  if (!homeProfileEditForm.hidden) homeProfileEditForm.elements.name.focus();
+});
+
+homeProfileEditForm?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const submit = homeProfileEditForm.querySelector('[type="submit"]');
+  homeProfileEditStatus.removeAttribute('data-tone');
+  homeProfileEditStatus.textContent = 'Menyimpan profil…';
+  submit.disabled = true;
+  try {
+    const response = await fetch('/api/profile', {
+      method: 'PUT',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: homeProfileEditForm.elements.name.value,
+        institution: homeProfileEditForm.elements.institution.value,
+        bio: homeProfileEditForm.elements.bio.value,
+      }),
+    });
+    const raw = await response.text();
+    let payload;
+    try {
+      const parsed = raw ? JSON.parse(raw) : {};
+      payload = parsed && typeof parsed === 'object' ? parsed : {};
+    }
+    catch { throw new Error('Server profil mengirim respons yang tidak valid.'); }
+    if (!response.ok) throw new Error(payload.error || 'Profil gagal disimpan.');
+    if (!payload.profile) throw new Error('Respons profil tidak memuat data yang diperbarui.');
+    homeSession = { ...homeSession, profile: { ...homeSession.profile, ...payload.profile } };
+    renderHomeProfile();
+    homeProfileEditStatus.textContent = 'Profil berhasil diperbarui.';
+  } catch (error) {
+    homeProfileEditStatus.dataset.tone = 'error';
+    homeProfileEditStatus.textContent = error.message === 'Failed to fetch'
+      ? 'Tidak dapat menghubungi server profil. Coba lagi.'
+      : error.message;
+  } finally {
+    submit.disabled = false;
+  }
+});
 
 homeProfileButton?.addEventListener('click', () => {
   const isOpen = homeProfileMenu.hidden;
