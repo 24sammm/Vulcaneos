@@ -13,7 +13,7 @@
   <link href="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.css" rel="stylesheet" />
   <link href="https://cesium.com/downloads/cesiumjs/releases/1.147/Build/Cesium/Widgets/widgets.css" rel="stylesheet" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=parameter-info-layout-1" />
+  <link rel="stylesheet" href="style.css?v=admin-navigation-1" />
   <link rel="stylesheet" href="download-modal.css" />
   <link rel="stylesheet" href="logo.css" />
 </head>
@@ -38,6 +38,9 @@
         <div class="nav-label nav-spaced">SUMBER</div>
         <a class="nav-item" href="#metadataButton"><span class="nav-icon"><i class="fa-solid fa-database"></i></span><span>Data &amp; metadata</span></a>
         <a class="nav-item" href="sumber.html"><span class="nav-icon"><i class="fa-solid fa-book"></i></span><span>Kumpulan sumber</span></a>
+        <div class="nav-label nav-spaced">KOMUNITAS</div>
+        <a class="nav-item" href="index.html#forum"><span class="nav-icon"><i class="fa-regular fa-comments"></i></span><span>Forum diskusi</span></a>
+        <a class="nav-item" id="adminUsersNav" href="admin-users.html" hidden><span class="nav-icon"><i class="fa-solid fa-users-gear"></i></span><span>Kelola akun pengguna</span></a>
       </nav>
       <div class="sidebar-bottom">
         
@@ -146,6 +149,6 @@
   <script>window.CESIUM_BASE_URL = 'https://cesium.com/downloads/cesiumjs/releases/1.147/Build/Cesium/';</script>
   <script src="https://cesium.com/downloads/cesiumjs/releases/1.147/Build/Cesium/Cesium.js"></script>
   <script src="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.js"></script>
-  <script src="app.js?v=wave-direction-interpolation-1"></script>
+  <script src="app.js?v=admin-user-management-1"></script>
 </body>
 </html>
