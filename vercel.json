@@ -3,14 +3,11 @@
   "installCommand": "npm install",
   "functions": {
     "api/protected-webgis.js": {
-      "includeFiles": "webgis.html"
-    },
-    "api/protected-admin-users.js": {
-      "includeFiles": "admin-users.html"
+      "includeFiles": "{webgis,admin-users}.html"
     }
   },
   "rewrites": [
     { "source": "/webgis.html", "destination": "/api/protected-webgis" },
-    { "source": "/admin-users.html", "destination": "/api/protected-admin-users" }
+    { "source": "/admin-users.html", "destination": "/api/protected-webgis?page=admin-users" }
   ]
 }
