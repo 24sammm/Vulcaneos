@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="admin-users.css?v=1" />
+  <link rel="stylesheet" href="admin-users.css?v=notifications-1" />
 </head>
 <body>
   <main class="admin-users-page">
@@ -33,6 +33,44 @@
         </div>
         <div class="admin-users-count"><strong id="userCount">—</strong><span>akun terdaftar</span></div>
       </div>
+
+      <section class="admin-users-card admin-notification-card" aria-labelledby="notificationTitle">
+        <div class="admin-notification-heading">
+          <div>
+            <h2 id="notificationTitle"><i class="fa-regular fa-bell" aria-hidden="true"></i> Kirim informasi ke user</h2>
+            <p>Informasi akan muncul pada tombol notifikasi di beranda penerima.</p>
+          </div>
+        </div>
+        <form id="adminNotificationForm">
+          <div class="admin-notification-fields">
+            <label>Judul
+              <input name="title" type="text" minlength="3" maxlength="120" required placeholder="Contoh: Informasi pemeliharaan sistem" />
+            </label>
+            <label>Isi informasi
+              <textarea name="message" rows="4" minlength="3" maxlength="3000" required placeholder="Tulis informasi untuk user…"></textarea>
+            </label>
+          </div>
+          <fieldset class="admin-notification-audience">
+            <legend>Penerima</legend>
+            <label><input type="radio" name="recipientMode" value="all" checked /> Semua akun registrasi</label>
+            <label><input type="radio" name="recipientMode" value="selected" /> User tertentu</label>
+          </fieldset>
+          <div class="admin-notification-recipient-picker" id="notificationRecipientPicker" hidden>
+            <div class="admin-notification-recipient-toolbar">
+              <label class="admin-users-search">
+                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                <input id="notificationRecipientSearch" type="search" placeholder="Cari nama atau username…" autocomplete="off" />
+              </label>
+              <span id="notificationRecipientCount">0 dipilih</span>
+            </div>
+            <div class="admin-notification-recipient-list" id="notificationRecipientList"></div>
+          </div>
+          <div class="admin-notification-footer">
+            <p id="notificationStatus" role="status" aria-live="polite"></p>
+            <button type="submit" id="sendNotificationButton" disabled><i class="fa-regular fa-paper-plane" aria-hidden="true"></i> Kirim informasi</button>
+          </div>
+        </form>
+      </section>
 
       <section class="admin-users-card" aria-labelledby="userListTitle">
         <div class="admin-users-toolbar">
@@ -68,6 +106,6 @@
       <p class="admin-users-footnote"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Akun admin dan akun yang dikelola melalui environment tidak muncul di daftar ini dan tidak dapat dihapus dari sini.</p>
     </section>
   </main>
-  <script src="admin-users.js?v=1"></script>
+  <script src="admin-users.js?v=notifications-1"></script>
 </body>
 </html>
