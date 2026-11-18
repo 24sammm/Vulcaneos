@@ -4,7 +4,6 @@ const {
   listThreads,
   getThread,
   createThread,
-  createGuestThread,
   createReply,
   createGuestReply,
   toggleThreadLike,
@@ -58,14 +57,11 @@ module.exports = async (req, res) => {
     const action = body.action;
 
     if (action === 'create-thread') {
+      if (!session) return json(res, 401, { error: 'Masuk terlebih dahulu untuk membuat topik.' });
       const title = text(body.title, 5, 140);
       const content = text(body.body, 5, 5000);
       if (!title) return json(res, 400, { error: 'Judul diskusi harus 5–140 karakter.' });
       if (!content) return json(res, 400, { error: 'Isi diskusi harus 5–5000 karakter.' });
-      if (!session) {
-        const guestThread = await createGuestThread(title, content);
-        return json(res, 201, guestThread);
-      }
       const id = await createThread(session.sub, title, content);
       return json(res, 201, { id });
     }
@@ -86,11 +82,10 @@ module.exports = async (req, res) => {
     }
 
     if (action === 'toggle-like') {
+      if (!session) return json(res, 401, { error: 'Masuk terlebih dahulu untuk menyukai diskusi.' });
       const threadId = objectIdText(body.threadId);
       if (!threadId) return json(res, 400, { error: 'ID diskusi tidak valid.' });
-      const result = await toggleThreadLike(threadId, session
-        ? { username: session.sub }
-        : { visitorToken });
+      const result = await toggleThreadLike(threadId, { username: session.sub });
       return json(res, 200, result);
     }
 
@@ -106,11 +101,10 @@ module.exports = async (req, res) => {
     }
 
     if (action === 'delete-reply') {
-      if (!session) return json(res, 401, { error: 'Hanya admin yang dapat menghapus komentar.' });
-      if (!isAdmin(session.sub)) return json(res, 403, { error: 'Hanya admin yang dapat menghapus komentar.' });
+      if (!session) return json(res, 401, { error: 'Masuk terlebih dahulu untuk menghapus komentar.' });
       const replyId = objectIdText(body.replyId);
       if (!replyId) return json(res, 400, { error: 'ID balasan tidak valid.' });
-      await deleteReply(replyId, session.sub, true);
+      await deleteReply(replyId, session.sub, isAdmin(session.sub));
       return json(res, 200, { deleted: true });
     }
 
